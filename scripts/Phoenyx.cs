@@ -42,14 +42,18 @@ public partial class Phoenyx : Node
 
         public static void Save()
         {
-            File.WriteAllText($"{Constants.USER_FOLDER}/skins/{SettingsProfile.Skin}/colors.txt", RawColors);
-            File.WriteAllText($"{Constants.USER_FOLDER}/skins/{SettingsProfile.Skin}/space.txt", Space);
-            Logger.Log($"Saved skin {SettingsProfile.Skin}");
+            var settings = SettingsManager.Settings;
+
+            File.WriteAllText($"{Constants.USER_FOLDER}/skins/{settings.Skin}/colors.txt", RawColors);
+            File.WriteAllText($"{Constants.USER_FOLDER}/skins/{settings.Skin}/space.txt", Space);
+            Logger.Log($"Saved skin {settings.Skin}");
         }
 
         public static void Load()
         {
-            RawColors = File.ReadAllText($"{Constants.USER_FOLDER}/skins/{SettingsProfile.Skin}/colors.txt").TrimSuffix(",");
+            var settings = SettingsManager.Settings;
+
+            RawColors = File.ReadAllText($"{Constants.USER_FOLDER}/skins/{settings.Skin}/colors.txt").TrimSuffix(",");
 
             string[] split = RawColors.Split(",");
             Color[] colors = new Color[split.Length];
@@ -70,36 +74,36 @@ public partial class Phoenyx : Node
                     continue;
                 }
 
-                property.SetValue(null, ImageTexture.CreateFromImage(Image.LoadFromFile($"{Constants.USER_FOLDER}/skins/{SettingsProfile.Skin}/{property.Name.TrimSuffix("Image").ToSnakeCase()}.png")));
+                property.SetValue(null, ImageTexture.CreateFromImage(Image.LoadFromFile($"{Constants.USER_FOLDER}/skins/{settings.Skin}/{property.Name.TrimSuffix("Image").ToSnakeCase()}.png")));
             }
 
-            Space = File.ReadAllText($"{Constants.USER_FOLDER}/skins/{SettingsProfile.Skin}/space.txt");
+            Space = File.ReadAllText($"{Constants.USER_FOLDER}/skins/{settings.Skin}/space.txt");
 
-            if (File.Exists($"{Constants.USER_FOLDER}/skins/{SettingsProfile.Skin}/note.obj"))
+            if (File.Exists($"{Constants.USER_FOLDER}/skins/{settings.Skin}/note.obj"))
             {
-                NoteMesh = (ArrayMesh)Util.OBJParser.Call("load_obj", $"{Constants.USER_FOLDER}/skins/{SettingsProfile.Skin}/note.obj");
+                NoteMesh = (ArrayMesh)Util.OBJParser.Call("load_obj", $"{Constants.USER_FOLDER}/skins/{settings.Skin}/note.obj");
             }
             else
             {
                 NoteMesh = GD.Load<ArrayMesh>($"res://skin/note.obj");
             }
 
-            if (File.Exists($"{Constants.USER_FOLDER}/skins/{SettingsProfile.Skin}/hit.mp3"))
+            if (File.Exists($"{Constants.USER_FOLDER}/skins/{settings.Skin}/hit.mp3"))
             {
-                Godot.FileAccess file = Godot.FileAccess.Open($"{Constants.USER_FOLDER}/skins/{SettingsProfile.Skin}/hit.mp3", Godot.FileAccess.ModeFlags.Read);
+                Godot.FileAccess file = Godot.FileAccess.Open($"{Constants.USER_FOLDER}/skins/{settings.Skin}/hit.mp3", Godot.FileAccess.ModeFlags.Read);
                 HitSoundBuffer = file.GetBuffer((long)file.GetLength());
                 file.Close();
             }
 
-            if (File.Exists($"{Constants.USER_FOLDER}/skins/{SettingsProfile.Skin}/fail.mp3"))
+            if (File.Exists($"{Constants.USER_FOLDER}/skins/{settings.Skin}/fail.mp3"))
             {
-                Godot.FileAccess file = Godot.FileAccess.Open($"{Constants.USER_FOLDER}/skins/{SettingsProfile.Skin}/fail.mp3", Godot.FileAccess.ModeFlags.Read);
+                Godot.FileAccess file = Godot.FileAccess.Open($"{Constants.USER_FOLDER}/skins/{settings.Skin}/fail.mp3", Godot.FileAccess.ModeFlags.Read);
                 FailSoundBuffer = file.GetBuffer((long)file.GetLength());
                 file.Close();
             }
 
-            ToastNotification.Notify($"Loaded skin [{SettingsProfile.Skin}]");
-            Logger.Log($"Loaded skin {SettingsProfile.Skin}");
+            ToastNotification.Notify($"Loaded skin [{settings.Skin}]");
+            Logger.Log($"Loaded skin {settings.Skin}");
         }
     }
 
@@ -235,6 +239,8 @@ public partial class Phoenyx : Node
 
         public static void Setup()
         {
+            var settings = SettingsManager.Settings;
+
             if (Initialized)
             {
                 return;
@@ -328,16 +334,16 @@ public partial class Phoenyx : Node
 
             if (!File.Exists($"{Constants.USER_FOLDER}/profiles/default.json"))
             {
-                SettingsProfile.Save("default");
+                SettingsManager.Save("default");
             }
 
             try
             {
-                SettingsProfile.Load();
+                SettingsManager.Load();
             }
             catch
             {
-                SettingsProfile.Save();
+                SettingsManager.Save();
             }
 
             if (!File.Exists($"{Constants.USER_FOLDER}/stats"))
@@ -392,6 +398,8 @@ public partial class Phoenyx : Node
 
         public static void Quit()
         {
+            var settings = SettingsManager.Settings;
+
             if (Quitting)
             {
                 return;
@@ -408,7 +416,7 @@ public partial class Phoenyx : Node
 
             if (Loaded)
             {
-                SettingsProfile.Save();
+                SettingsManager.Save();
                 Stats.Save();
             }
 

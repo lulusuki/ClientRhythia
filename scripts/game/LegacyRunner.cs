@@ -7,6 +7,8 @@ using Godot;
 
 public partial class LegacyRunner : Node3D
 {
+    private SettingsProfile settings;
+
 	private static Node3D Node3D;
 	private static readonly PackedScene PlayerScore = GD.Load<PackedScene>("res://prefabs/player_score.tscn");
 	private static readonly PackedScene HitFeedback = GD.Load<PackedScene>("res://prefabs/hit_popup.tscn");
@@ -77,6 +79,9 @@ public partial class LegacyRunner : Node3D
 
 	public struct Attempt
 	{
+        private SettingsProfile settings;
+        private LegacyRunner runner;
+
 		public string ID = "";
 		public bool Stopped = false;
 		public bool IsReplay = false;
@@ -118,8 +123,10 @@ public partial class LegacyRunner : Node3D
 		public Vector2 RawCursorPosition = Vector2.Zero;
 		public double DistanceMM = 0;
 
-		public Attempt(Map map, double speed, double startFrom, Dictionary<string, bool> mods, string[] players = null, Replay[] replays = null)
+		public Attempt(LegacyRunner runner, Map map, double speed, double startFrom, Dictionary<string, bool> mods, string[] players = null, Replay[] replays = null)
 		{
+            settings = SettingsManager.Settings;
+
 			ID = $"{map.ID}_{OS.GetUniqueId()}_{Time.GetDatetimeStringFromUnixTime((long)Time.GetUnixTimeFromSystem())}".Replace(":", "_");
 			Replays = replays;
 			IsReplay = Replays != null;
@@ -127,7 +134,7 @@ public partial class LegacyRunner : Node3D
 			Speed = speed;
 			StartFrom = startFrom;
 			Players = players ?? [];
-			Progress = -1000 - SettingsProfile.ApproachTime * 1000 + StartFrom;
+			Progress = -1000 - settings.ApproachTime * 1000 + StartFrom;
 			ComboMultiplierIncrement = Math.Max(2, (uint)Map.Notes.Length / 200);
 			Mods = [];
 			HitsInfo = IsReplay ? Replays[0].Notes : new float[Map.Notes.Length];
@@ -150,7 +157,7 @@ public partial class LegacyRunner : Node3D
 				}
 			}
 
-			if (!IsReplay && SettingsProfile.RecordReplays && !Map.Ephemeral)
+			if (!IsReplay && settings.RecordReplays && !Map.Ephemeral)
 			{
 				ReplayFile = Godot.FileAccess.Open($"{Constants.USER_FOLDER}/replays/{ID}.phxr", Godot.FileAccess.ModeFlags.Write);
 				ReplayFile.StoreString("phxr");	// sig
@@ -160,15 +167,15 @@ public partial class LegacyRunner : Node3D
 
 				ReplayFile.StoreDouble(Speed);
 				ReplayFile.StoreDouble(StartFrom);
-				ReplayFile.StoreDouble(SettingsProfile.ApproachRate);
-				ReplayFile.StoreDouble(SettingsProfile.ApproachDistance);
-				ReplayFile.StoreDouble(SettingsProfile.FadeIn);
-				ReplayFile.Store8((byte)(SettingsProfile.FadeOut ? 1 : 0));
-				ReplayFile.Store8((byte)(SettingsProfile.Pushback ? 1 : 0));
-				ReplayFile.StoreDouble(SettingsProfile.Parallax);
-				ReplayFile.StoreDouble(SettingsProfile.FoV);
-				ReplayFile.StoreDouble(SettingsProfile.NoteSize);
-				ReplayFile.StoreDouble(SettingsProfile.Sensitivity);
+				ReplayFile.StoreDouble(settings.ApproachRate);
+				ReplayFile.StoreDouble(settings.ApproachDistance);
+				ReplayFile.StoreDouble(settings.FadeIn);
+				ReplayFile.Store8((byte)(settings.FadeOut ? 1 : 0));
+				ReplayFile.Store8((byte)(settings.Pushback ? 1 : 0));
+				ReplayFile.StoreDouble(settings.Parallax);
+				ReplayFile.StoreDouble(settings.FoV);
+				ReplayFile.StoreDouble(settings.NoteSize);
+				ReplayFile.StoreDouble(settings.Sensitivity);
 
 				ReplayAttemptStatusOffset = (uint)ReplayFile.GetPosition();
 
@@ -273,7 +280,7 @@ public partial class LegacyRunner : Node3D
 			AccuracyLabel.Text = $"{(Hits + Misses == 0 ? "100.00" : Accuracy.ToString().PadDecimals(2))}%";
 			ComboLabel.Text = Combo.ToString();
 
-			if (!SettingsProfile.AlwaysPlayHitSound)
+			if (!settings.AlwaysPlayHitSound)
 			{
 				SoundManager.HitSound.Play();
 			}
@@ -283,7 +290,7 @@ public partial class LegacyRunner : Node3D
 			HitTween.TweenProperty(HitsLabel.LabelSettings, "font_color", Color.Color8(255, 255, 255, 160), 1);
 			HitTween.Play();
 
-			if (!SettingsProfile.HitPopups || HitPopups >= 64)
+			if (!settings.HitPopups || HitPopups >= 64)
 			{
 				return;
 			}
@@ -348,7 +355,7 @@ public partial class LegacyRunner : Node3D
 
 				if (!Mods["NoFail"])
 				{
-					QueueStop();
+					// QueueStop();
 				}
 			}
 
@@ -365,7 +372,7 @@ public partial class LegacyRunner : Node3D
 			MissTween.TweenProperty(MissesLabel.LabelSettings, "font_color", Color.Color8(255, 255, 255, 160), 1);
 			MissTween.Play();
 
-			if (!SettingsProfile.MissPopups || MissPopups >= 64)
+			if (!settings.MissPopups || MissPopups >= 64)
 			{
 				return;
 			}
@@ -447,6 +454,8 @@ public partial class LegacyRunner : Node3D
 	
 	public override void _Ready()
 	{
+        settings = SettingsManager.Settings;
+
 		Node3D = this;
 
 		Menu = GetNode<Panel>("Menu");
@@ -597,7 +606,7 @@ public partial class LegacyRunner : Node3D
 			ReplayViewerSeekHovered = false;
 		};
 
-		if (SettingsProfile.SimpleHUD)
+		if (settings.SimpleHUD)
 		{
 			Godot.Collections.Array<Node> widgets = PanelLeft.GetChildren();
 			widgets.AddRange(PanelRight.GetChildren());
@@ -610,7 +619,7 @@ public partial class LegacyRunner : Node3D
 			SimpleMissesLabel.Visible = true;
 		}
 
-		float fov = (float)(CurrentAttempt.IsReplay ? CurrentAttempt.Replays[0].FoV : SettingsProfile.FoV);
+		float fov = (float)(CurrentAttempt.IsReplay ? CurrentAttempt.Replays[0].FoV : settings.FoV);
 
 		MenuShown = false;
 		Camera.Fov = fov;
@@ -624,7 +633,7 @@ public partial class LegacyRunner : Node3D
 		float videoHeight = 2 * (float)Math.Sqrt(Math.Pow(103.75 / Math.Cos(Mathf.DegToRad(fov / 2)), 2) - Math.Pow(103.75, 2));
 
 		(VideoQuad.Mesh as QuadMesh).Size = new(videoHeight / 0.5625f, videoHeight);	// don't use 16:9? too bad lol
-		Video.GetParent<SubViewport>().Size = new((int)(1920 * SettingsProfile.VideoRenderScale / 100), (int)(1080 * SettingsProfile.VideoRenderScale / 100));
+		Video.GetParent<SubViewport>().Size = new((int)(1920 * settings.VideoRenderScale / 100), (int)(1080 * settings.VideoRenderScale / 100));
 
 		MultiplierProgress = 0;
 		MultiplierColour = Color.Color8(255, 255, 255);
@@ -637,11 +646,11 @@ public partial class LegacyRunner : Node3D
 		Phoenyx.Util.DiscordRPC.Call("Set", "state", CurrentAttempt.Map.PrettyTitle);
 		Phoenyx.Util.DiscordRPC.Call("Set", "end_timestamp", Time.GetUnixTimeFromSystem() + CurrentAttempt.Map.Length / 1000 / CurrentAttempt.Speed);
 
-		Input.MouseMode = SettingsProfile.AbsoluteInput || CurrentAttempt.IsReplay ? Input.MouseModeEnum.ConfinedHidden : Input.MouseModeEnum.Captured;
+		Input.MouseMode = settings.AbsoluteInput || CurrentAttempt.IsReplay ? Input.MouseModeEnum.ConfinedHidden : Input.MouseModeEnum.Captured;
 		Input.UseAccumulatedInput = false;
 		DisplayServer.WindowSetVsyncMode(DisplayServer.VSyncMode.Disabled);
 
-		(Cursor.Mesh as QuadMesh).Size = new Vector2((float)(Constants.CURSOR_SIZE * SettingsProfile.CursorScale), (float)(Constants.CURSOR_SIZE * SettingsProfile.CursorScale));
+		(Cursor.Mesh as QuadMesh).Size = new Vector2((float)(Constants.CURSOR_SIZE * settings.CursorScale), (float)(Constants.CURSOR_SIZE * settings.CursorScale));
 
 		try
 		{
@@ -664,7 +673,7 @@ public partial class LegacyRunner : Node3D
 			throw Logger.Error($"Could not load skin; {exception.Message}");
 		}
 
-		string space = SettingsProfile.Space == "skin" ? Phoenyx.Skin.Space : SettingsProfile.Space;
+		string space = settings.Space == "skin" ? Phoenyx.Skin.Space : settings.Space;
 
 		if (space != "void")
 		{
@@ -686,7 +695,7 @@ public partial class LegacyRunner : Node3D
 
 		MapLength += Constants.HIT_WINDOW;
 		
-		if (SettingsProfile.VideoDim < 100 && CurrentAttempt.Map.VideoBuffer != null)
+		if (settings.VideoDim < 100 && CurrentAttempt.Map.VideoBuffer != null)
 		{
 			if (CurrentAttempt.Speed != 1)
 			{
@@ -838,7 +847,7 @@ public partial class LegacyRunner : Node3D
 				QueueStop();
 			}
 		}
-		else if (!CurrentAttempt.Stopped && SettingsProfile.RecordReplays && !CurrentAttempt.Map.Ephemeral && now - CurrentAttempt.LastReplayFrame >= 1000000/60)	// 60hz
+		else if (!CurrentAttempt.Stopped && settings.RecordReplays && !CurrentAttempt.Map.Ephemeral && now - CurrentAttempt.LastReplayFrame >= 1000000/60)	// 60hz
 		{
 			if (CurrentAttempt.ReplayFrames.Count == 0 || (CurrentAttempt.ReplayFrames[^1][1 .. 2] != new float[]{CurrentAttempt.CursorPosition.X, CurrentAttempt.CursorPosition.Y}))
 			{
@@ -872,12 +881,12 @@ public partial class LegacyRunner : Node3D
 
 		if (CurrentAttempt.Map.VideoBuffer != null)
 		{
-			if (SettingsProfile.VideoDim < 100 && !Video.IsPlaying() && CurrentAttempt.Progress >= 0)
+			if (settings.VideoDim < 100 && !Video.IsPlaying() && CurrentAttempt.Progress >= 0)
 			{
 				Video.Play();
 				
 				Tween videoInTween = VideoQuad.CreateTween();
-				videoInTween.TweenProperty(VideoQuad, "transparency", (float)SettingsProfile.VideoDim / 100, 0.5);
+				videoInTween.TweenProperty(VideoQuad, "transparency", (float)settings.VideoDim / 100, 0.5);
 				videoInTween.Play();
 			}
 		}
@@ -899,7 +908,7 @@ public partial class LegacyRunner : Node3D
 		ProcessNotes.Clear();
 
 		// note process check
-		double at = CurrentAttempt.IsReplay ? CurrentAttempt.Replays[0].ApproachTime : SettingsProfile.ApproachTime;
+		double at = CurrentAttempt.IsReplay ? CurrentAttempt.Replays[0].ApproachTime : settings.ApproachTime;
 
 		for (uint i = CurrentAttempt.PassedNotes; i < CurrentAttempt.Map.Notes.Length; i++)
 		{
@@ -936,7 +945,7 @@ public partial class LegacyRunner : Node3D
 				continue;
 			}
 
-			if (SettingsProfile.AlwaysPlayHitSound && !CurrentAttempt.Map.Notes[i].Hittable && note.Millisecond < CurrentAttempt.Progress)
+			if (settings.AlwaysPlayHitSound && !CurrentAttempt.Map.Notes[i].Hittable && note.Millisecond < CurrentAttempt.Progress)
 			{
 				CurrentAttempt.Map.Notes[i].Hittable = true;
 				
@@ -1004,7 +1013,7 @@ public partial class LegacyRunner : Node3D
 		}
 
 		// trail stuff
-		if (SettingsProfile.CursorTrail)
+		if (settings.CursorTrail)
 		{
 			List<Dictionary<string, object>> culledList = [];
 
@@ -1015,7 +1024,7 @@ public partial class LegacyRunner : Node3D
 
 			foreach (Dictionary<string, object> entry in LastCursorPositions)
 			{
-				if (now - (ulong)entry["Time"] >= (SettingsProfile.TrailTime * 1000000))
+				if (now - (ulong)entry["Time"] >= (settings.TrailTime * 1000000))
 				{
 					continue;
 				}
@@ -1038,7 +1047,7 @@ public partial class LegacyRunner : Node3D
 			foreach (Dictionary<string, object> entry in culledList)
 			{
 				ulong difference = now - (ulong)entry["Time"];
-				uint alpha = (uint)(difference / (SettingsProfile.TrailTime * 1000000) * 255);
+				uint alpha = (uint)(difference / (settings.TrailTime * 1000000) * 255);
 				
 				transform.Origin = new Vector3(((Vector2)entry["Position"]).X, ((Vector2)entry["Position"]).Y, 0);
 				
@@ -1059,7 +1068,7 @@ public partial class LegacyRunner : Node3D
 		{
 			UpdateCursor(eventMouseMotion.Relative);
 			
-			CurrentAttempt.DistanceMM += eventMouseMotion.Relative.Length() / SettingsProfile.Sensitivity / 57.5;
+			CurrentAttempt.DistanceMM += eventMouseMotion.Relative.Length() / settings.Sensitivity / 57.5;
 		}
 		else if (@event is InputEventKey eventKey && eventKey.Pressed)
 		{
@@ -1104,10 +1113,10 @@ public partial class LegacyRunner : Node3D
 					}
 					break;
 				case Key.F:
-					SettingsProfile.FadeOut = !SettingsProfile.FadeOut;
+					settings.FadeOut = !settings.FadeOut;
 					break;
 				case Key.P:
-					SettingsProfile.Pushback = !SettingsProfile.Pushback;
+					settings.Pushback = !settings.Pushback;
 					break;
 			}
 		}
@@ -1122,9 +1131,9 @@ public partial class LegacyRunner : Node3D
 		}
 	}
 	
-	public static void Play(Map map, double speed = 1, double startFrom = 0, Dictionary<string, bool> mods = null, string[] players = null, Replay[] replays = null)
+	public void Play(Map map, double speed = 1, double startFrom = 0, Dictionary<string, bool> mods = null, string[] players = null, Replay[] replays = null)
 	{
-		CurrentAttempt = new(map, speed, startFrom, mods ?? [], players, replays);
+		CurrentAttempt = new(this, map, speed, startFrom, mods ?? [], players, replays);
 		Playing = true;
 		StopQueued = false;
 		Started = Time.GetTicksUsec();
@@ -1145,7 +1154,7 @@ public partial class LegacyRunner : Node3D
 		}
 	}
 	
-	public static void Restart()
+	public void Restart()
 	{
 		CurrentAttempt.Alive = false;
 		CurrentAttempt.Qualifies = false;
@@ -1154,7 +1163,7 @@ public partial class LegacyRunner : Node3D
 		Play(MapParser.Decode(CurrentAttempt.Map.FilePath), CurrentAttempt.Speed, CurrentAttempt.StartFrom, CurrentAttempt.Mods, CurrentAttempt.Players, CurrentAttempt.Replays);
 	}
 	
-	public static void Skip()
+	public void Skip()
 	{
 		if (CurrentAttempt.Skippable)
 		{
@@ -1166,7 +1175,7 @@ public partial class LegacyRunner : Node3D
 			}
 			else
 			{
-				CurrentAttempt.Progress = CurrentAttempt.Map.Notes[CurrentAttempt.PassedNotes].Millisecond - SettingsProfile.ApproachTime * 1500 * CurrentAttempt.Speed; // turn AT to ms and multiply by 1.5x
+				CurrentAttempt.Progress = CurrentAttempt.Map.Notes[CurrentAttempt.PassedNotes].Millisecond - settings.ApproachTime * 1500 * CurrentAttempt.Speed; // turn AT to ms and multiply by 1.5x
 				
 				Phoenyx.Util.DiscordRPC.Call("Set", "end_timestamp", Time.GetUnixTimeFromSystem() + (CurrentAttempt.Map.Length - CurrentAttempt.Progress) / 1000 / CurrentAttempt.Speed);
 				
@@ -1184,7 +1193,7 @@ public partial class LegacyRunner : Node3D
 		}
 	}
 	
-	public static void QueueStop()
+	public void QueueStop()
 	{
 		if (!Playing)
 		{
@@ -1195,7 +1204,7 @@ public partial class LegacyRunner : Node3D
 		StopQueued = true;
 	}
 	
-	public static void Stop(bool results = true)
+	public void Stop(bool results = true)
 	{
 		if (CurrentAttempt.Stopped)
 		{
@@ -1249,12 +1258,12 @@ public partial class LegacyRunner : Node3D
 		}
 	}
 	
-	public static void ShowMenu(bool show = true)
+	public void ShowMenu(bool show = true)
 	{
 		MenuShown = show;
 		Playing = !MenuShown;
 		SoundManager.Song.PitchScale = Playing ? (float)CurrentAttempt.Speed : 0.00000000000001f;	// not again
-		Input.MouseMode = MenuShown ? Input.MouseModeEnum.Visible : (SettingsProfile.AbsoluteInput || CurrentAttempt.IsReplay ? Input.MouseModeEnum.ConfinedHidden : Input.MouseModeEnum.Captured);
+		Input.MouseMode = MenuShown ? Input.MouseModeEnum.Visible : (settings.AbsoluteInput || CurrentAttempt.IsReplay ? Input.MouseModeEnum.ConfinedHidden : Input.MouseModeEnum.Captured);
 		
 		if (MenuShown)
 		{
@@ -1270,12 +1279,12 @@ public partial class LegacyRunner : Node3D
 		tween.Play();
 	}
 	
-	public static void HideMenu()
+	public void HideMenu()
 	{
 		ShowMenu(false);
 	}
 	
-	public static void ShowReplayViewer(bool show = true)
+	public void ShowReplayViewer(bool show = true)
 	{
 		ReplayViewerShown = CurrentAttempt.IsReplay && show;
 		ReplayViewer.Visible = ReplayViewerShown;
@@ -1283,26 +1292,26 @@ public partial class LegacyRunner : Node3D
 		Input.MouseMode = ReplayViewerShown ? Input.MouseModeEnum.Visible : Input.MouseModeEnum.Hidden;
 	}
 	
-	public static void HideReplayViewer()
+	public void HideReplayViewer()
 	{
 		ShowReplayViewer(false);
 	}
 	
-	public static void UpdateVolume()
+	public void UpdateVolume()
 	{
-		SoundManager.Song.VolumeDb = -80 + 70 * (float)Math.Pow(SettingsProfile.VolumeMusic / 100, 0.1) * (float)Math.Pow(SettingsProfile.VolumeMaster / 100, 0.1);
-		SoundManager.HitSound.VolumeDb = -80 + 80 * (float)Math.Pow(SettingsProfile.VolumeSFX / 100, 0.1) * (float)Math.Pow(SettingsProfile.VolumeMaster / 100, 0.1);
-		SoundManager.FailSound.VolumeDb = -80 + 80 * (float)Math.Pow(SettingsProfile.VolumeSFX / 100, 0.1) * (float)Math.Pow(SettingsProfile.VolumeMaster / 100, 0.1);
+		SoundManager.Song.VolumeDb = -80 + 70 * (float)Math.Pow(settings.VolumeMusic / 100, 0.1) * (float)Math.Pow(settings.VolumeMaster / 100, 0.1);
+		SoundManager.HitSound.VolumeDb = -80 + 80 * (float)Math.Pow(settings.VolumeSFX / 100, 0.1) * (float)Math.Pow(settings.VolumeMaster / 100, 0.1);
+		SoundManager.FailSound.VolumeDb = -80 + 80 * (float)Math.Pow(settings.VolumeSFX / 100, 0.1) * (float)Math.Pow(settings.VolumeMaster / 100, 0.1);
 	}
 	
-	public static void UpdateCursor(Vector2 mouseDelta)
+	public void UpdateCursor(Vector2 mouseDelta)
 	{
-		float sensitivity = (float)(CurrentAttempt.IsReplay ? CurrentAttempt.Replays[0].Sensitivity : SettingsProfile.Sensitivity);
-		sensitivity *= (float)SettingsProfile.FoV / 70f;
+		float sensitivity = (float)(CurrentAttempt.IsReplay ? CurrentAttempt.Replays[0].Sensitivity : settings.Sensitivity);
+		sensitivity *= (float)settings.FoV / 70f;
 		
 		if (!CurrentAttempt.Mods["Spin"])
 		{
-			if (SettingsProfile.CursorDrift)
+			if (settings.CursorDrift)
 			{
 				CurrentAttempt.CursorPosition = (CurrentAttempt.CursorPosition + new Vector2(1, -1) * mouseDelta / 120 * sensitivity).Clamp(-Constants.BOUNDS, Constants.BOUNDS);
 			}
@@ -1313,7 +1322,7 @@ public partial class LegacyRunner : Node3D
 			}
 			
 			Cursor.Position = new Vector3(CurrentAttempt.CursorPosition.X, CurrentAttempt.CursorPosition.Y, 0);
-			Camera.Position = new Vector3(0, 0, 3.75f) + new Vector3(CurrentAttempt.CursorPosition.X, CurrentAttempt.CursorPosition.Y, 0) * (float)(CurrentAttempt.IsReplay ? CurrentAttempt.Replays[0].Parallax : SettingsProfile.Parallax);
+			Camera.Position = new Vector3(0, 0, 3.75f) + new Vector3(CurrentAttempt.CursorPosition.X, CurrentAttempt.CursorPosition.Y, 0) * (float)(CurrentAttempt.IsReplay ? CurrentAttempt.Replays[0].Parallax : settings.Parallax);
 			Camera.Rotation = Vector3.Zero;
 			
 			VideoQuad.Position = new Vector3(Camera.Position.X, Camera.Position.Y, -100);

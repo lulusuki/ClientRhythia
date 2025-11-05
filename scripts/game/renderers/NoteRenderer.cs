@@ -37,7 +37,8 @@ public partial class NoteRenderer : Renderer<Note>
 
     public override void Process(double delta, Attempt attempt)
     {
-        // TODO: Change settings to be have non-static fields
+        // TODO: Change settings to have non-static fields
+
         //var notes = attempt.Notes;
 
         //float ar = attempt.Settings.ApproachRate;

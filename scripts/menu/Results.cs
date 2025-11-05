@@ -5,6 +5,8 @@ using System.IO;
 
 public partial class Results : Control
 {
+    private SettingsProfile settings;
+
     private static TextureRect Cursor;
     private static Panel Footer;
     private static Panel Holder;
@@ -15,6 +17,8 @@ public partial class Results : Control
 
     public override void _Ready()
     {
+        settings = SettingsManager.Settings;
+
         Cursor = GetNode<TextureRect>("Cursor");
         Footer = GetNode<Panel>("Footer");
         Holder = GetNode<Panel>("Holder");
@@ -24,7 +28,7 @@ public partial class Results : Control
         DisplayServer.WindowSetVsyncMode(DisplayServer.VSyncMode.Mailbox);
 
         Cursor.Texture = Phoenyx.Skin.CursorImage;
-        Cursor.Size = new Vector2(32 * (float)SettingsProfile.CursorScale, 32 * (float)SettingsProfile.CursorScale);
+        Cursor.Size = new Vector2(32 * (float)settings.CursorScale, 32 * (float)settings.CursorScale);
 
         Holder.GetNode<Label>("Title").Text = (LegacyRunner.CurrentAttempt.IsReplay ? "[REPLAY] " : "") + LegacyRunner.CurrentAttempt.Map.PrettyTitle;
         Holder.GetNode<Label>("Difficulty").Text = LegacyRunner.CurrentAttempt.Map.DifficultyName;
@@ -99,7 +103,9 @@ public partial class Results : Control
                 Replay replay = new(path);
                 SoundManager.Song.Stop();
                 SceneManager.Load("res://scenes/game.tscn");
-                LegacyRunner.Play(MapParser.Decode(replay.MapFilePath), replay.Speed, replay.StartFrom, replay.Modifiers, null, [replay]);
+
+                // TODO: Will be changed after player
+                ((LegacyRunner)SceneManager.Scene).Play(MapParser.Decode(replay.MapFilePath), replay.Speed, replay.StartFrom, replay.Modifiers, null, [replay]);
             }
         };
     }
@@ -143,21 +149,23 @@ public partial class Results : Control
         }
     }
 
-    public static void UpdateVolume()
+    public void UpdateVolume()
     {
-        SoundManager.Song.VolumeDb = -80 + 70 * (float)Math.Pow(SettingsProfile.VolumeMusic / 100, 0.1) * (float)Math.Pow(SettingsProfile.VolumeMaster / 100, 0.1);
+        SoundManager.Song.VolumeDb = -80 + 70 * (float)Math.Pow(settings.VolumeMusic / 100, 0.1) * (float)Math.Pow(settings.VolumeMaster / 100, 0.1);
     }
 
-    public static void Replay()
+    public void Replay()
     {
         Map map = MapParser.Decode(LegacyRunner.CurrentAttempt.Map.FilePath);
         map.Ephemeral = LegacyRunner.CurrentAttempt.Map.Ephemeral;
         SoundManager.Song.Stop();
         SceneManager.Load("res://scenes/game.tscn");
-        LegacyRunner.Play(map, LegacyRunner.CurrentAttempt.Speed, LegacyRunner.CurrentAttempt.StartFrom, LegacyRunner.CurrentAttempt.Mods);
+
+        // TODO: Will be changed after player
+        ((LegacyRunner)SceneManager.Scene).Play(map, LegacyRunner.CurrentAttempt.Speed, LegacyRunner.CurrentAttempt.StartFrom, LegacyRunner.CurrentAttempt.Mods);
     }
 
-    public static void Stop()
+    public void Stop()
     {
         SceneManager.Load("res://scenes/main_menu.tscn");
     }

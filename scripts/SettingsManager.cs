@@ -1,33 +1,37 @@
 using System;
 using System.IO;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using Godot;
+using Godot.Collections;
 
 public partial class SettingsManager : Control
 {
     public static Control Control;
 
-    public static ColorRect Settings;
+    public static ColorRect SettingsNode;
     public static Panel Holder;
     public static bool Shown = false;
     public static LineEdit FocusedLineEdit = null;
+
+    public static SettingsProfile Settings { get; private set; } = new SettingsProfile();
 
     public override void _Ready()
     {
         Control = this;
 
-        Settings = GD.Load<PackedScene>("res://prefabs//settings.tscn").Instantiate<ColorRect>();
-        Holder = Settings.GetNode<Panel>("Holder");
-        Settings.GetNode<Button>("Deselect").Pressed += HideSettings;
+        SettingsNode = GD.Load<PackedScene>("res://prefabs//settings.tscn").Instantiate<ColorRect>();
+        Holder = SettingsNode.GetNode<Panel>("Holder");
+        SettingsNode.GetNode<Button>("Deselect").Pressed += HideSettings;
 
-        AddChild(Settings);
+        AddChild(SettingsNode);
         HideSettings();
         GetViewport().SizeChanged += () =>
         {
-            Settings.SetSize(DisplayServer.WindowGetSize());
+            SettingsNode.SetSize(DisplayServer.WindowGetSize());
         };
 
-        Settings.SetSize(DisplayServer.WindowGetSize());
+        SettingsNode.SetSize(DisplayServer.WindowGetSize());
 
         foreach (Node holder in Holder.GetNode("Sidebar").GetNode("Container").GetChildren())
         {
@@ -78,9 +82,9 @@ public partial class SettingsManager : Control
             string profile = profiles.GetItemText((int)item);
 
             HideMouse();
-            SettingsProfile.Save();
+            SettingsManager.Save();
             File.WriteAllText($"{Constants.USER_FOLDER}/current_profile.txt", profile);
-            SettingsProfile.Load(profile);
+            SettingsManager.Load(profile);
             UpdateSettings();
         };
 
@@ -88,7 +92,7 @@ public partial class SettingsManager : Control
         skins.ItemSelected += (long item) =>
         {
             HideMouse();
-            SettingsProfile.Skin = skins.GetItemText((int)item);
+            Settings.Skin = skins.GetItemText((int)item);
             Phoenyx.Skin.Load();
 
             if (SceneManager.Scene.Name == "SceneMenu")
@@ -103,12 +107,12 @@ public partial class SettingsManager : Control
         spaces.ItemSelected += (long item) =>
         {
             HideMouse();
-            SettingsProfile.Space = spaces.GetItemText((int)item);
+            Settings.Space = spaces.GetItemText((int)item);
         };
 
         Holder.GetNode("Categories").GetNode("Visuals").GetNode("Container").GetNode("Skin").GetNode<Button>("SkinFolder").Pressed += () =>
         {
-            OS.ShellOpen($"{Constants.USER_FOLDER}/skins/{SettingsProfile.Skin}");
+            OS.ShellOpen($"{Constants.USER_FOLDER}/skins/{Settings.Skin}");
         };
         Holder.GetNode("Categories").GetNode("Other").GetNode("Container").GetNode("RhythiaImport").GetNode<Button>("Button").Pressed += () =>
         {
@@ -121,23 +125,22 @@ public partial class SettingsManager : Control
             Godot.FileAccess file = Godot.FileAccess.Open($"{OS.GetDataDir()}/SoundSpacePlus/settings.json", Godot.FileAccess.ModeFlags.Read);
             Godot.Collections.Dictionary data = (Godot.Collections.Dictionary)Json.ParseString(file.GetAsText());
 
-            SettingsProfile.ApproachRate = (float)data["approach_rate"];
-            SettingsProfile.ApproachDistance = (float)data["spawn_distance"];
-            SettingsProfile.ApproachTime = SettingsProfile.ApproachDistance / SettingsProfile.ApproachRate;
-            SettingsProfile.FoV = (float)data["fov"];
-            SettingsProfile.Sensitivity = (float)data["sensitivity"] * 2;
-            SettingsProfile.Parallax = (float)data["parallax"] / 50;
-            SettingsProfile.FadeIn = (float)data["fade_length"] * 100;
-            SettingsProfile.FadeOut = (bool)data["half_ghost"];
-            SettingsProfile.Pushback = (bool)data["do_note_pushback"];
-            SettingsProfile.NoteSize = (float)data["note_size"] * 0.875f;
-            SettingsProfile.CursorScale = (float)data["cursor_scale"];
-            SettingsProfile.CursorTrail = (bool)data["cursor_trail"];
-            SettingsProfile.TrailTime = (float)data["trail_time"];
-            SettingsProfile.SimpleHUD = (bool)data["simple_hud"];
-            SettingsProfile.AbsoluteInput = (bool)data["absolute_mode"];
-            SettingsProfile.FPS = (double)data["fps"];
-            SettingsProfile.UnlockFPS = (bool)data["unlock_fps"];
+            Settings.ApproachRate = (float)data["approach_rate"];
+            Settings.ApproachDistance = (float)data["spawn_distance"];
+            Settings.FoV = (float)data["fov"];
+            Settings.Sensitivity = (float)data["sensitivity"] * 2;
+            Settings.Parallax = (float)data["parallax"] / 50;
+            Settings.FadeIn = (float)data["fade_length"] * 100;
+            Settings.FadeOut = (bool)data["half_ghost"];
+            Settings.Pushback = (bool)data["do_note_pushback"];
+            Settings.NoteSize = (float)data["note_size"] * 0.875f;
+            Settings.CursorScale = (float)data["cursor_scale"];
+            Settings.CursorTrail = (bool)data["cursor_trail"];
+            Settings.TrailTime = (float)data["trail_time"];
+            Settings.SimpleHUD = (bool)data["simple_hud"];
+            Settings.AbsoluteInput = (bool)data["absolute_mode"];
+            Settings.FPS = (double)data["fps"];
+            Settings.UnlockFPS = (bool)data["unlock_fps"];
 
             UpdateSettings();
 
@@ -150,21 +153,21 @@ public partial class SettingsManager : Control
     public static void ShowSettings(bool show = true)
     {
         Shown = show;
-        Settings.GetNode<Button>("Deselect").MouseFilter = Shown ? MouseFilterEnum.Stop : MouseFilterEnum.Ignore;
+        SettingsNode.GetNode<Button>("Deselect").MouseFilter = Shown ? MouseFilterEnum.Stop : MouseFilterEnum.Ignore;
         Control.CallDeferred("move_to_front");
 
         if (Shown)
         {
-            Settings.Visible = true;
+            SettingsNode.Visible = true;
         }
 
-        Tween tween = Settings.CreateTween();
-        tween.TweenProperty(Settings, "modulate", Color.Color8(255, 255, 255, (byte)(Shown ? 255 : 0)), 0.25).SetTrans(Tween.TransitionType.Quad).SetEase(Tween.EaseType.Out);
+        Tween tween = SettingsNode.CreateTween();
+        tween.TweenProperty(SettingsNode, "modulate", Color.Color8(255, 255, 255, (byte)(Shown ? 255 : 0)), 0.25).SetTrans(Tween.TransitionType.Quad).SetEase(Tween.EaseType.Out);
         tween.Parallel().TweenProperty(Holder, "offset_top", Shown ? 0 : 25, 0.25).SetTrans(Tween.TransitionType.Quad).SetEase(Tween.EaseType.Out);
         tween.Parallel().TweenProperty(Holder, "offset_bottom", Shown ? 0 : 25, 0.25).SetTrans(Tween.TransitionType.Quad).SetEase(Tween.EaseType.Out);
         tween.TweenCallback(Callable.From(() =>
         {
-            Settings.Visible = Shown;
+            SettingsNode.Visible = Shown;
         }));
         tween.Play();
     }
@@ -179,102 +182,100 @@ public partial class SettingsManager : Control
         switch (setting)
         {
             case "Sensitivity":
-                SettingsProfile.Sensitivity = (double)value;
+                Settings.Sensitivity = (double)value;
                 break;
             case "ApproachRate":
-                SettingsProfile.ApproachRate = (double)value;
-                SettingsProfile.ApproachTime = SettingsProfile.ApproachDistance / SettingsProfile.ApproachRate;
+                Settings.ApproachRate = (double)value;
                 break;
             case "ApproachDistance":
-                SettingsProfile.ApproachDistance = (double)value;
-                SettingsProfile.ApproachTime = SettingsProfile.ApproachDistance / SettingsProfile.ApproachRate;
+                Settings.ApproachDistance = (double)value;
                 break;
             case "FadeIn":
-                SettingsProfile.FadeIn = (double)value;
+                Settings.FadeIn = (double)value;
                 break;
             case "Parallax":
-                SettingsProfile.Parallax = (double)value;
+                Settings.Parallax = (double)value;
                 break;
             case "FoV":
-                SettingsProfile.FoV = (double)value;
+                Settings.FoV = (double)value;
                 break;
             case "VolumeMaster":
-                SettingsProfile.VolumeMaster = (double)value;
+                Settings.VolumeMaster = (double)value;
                 break;
             case "VolumeMusic":
-                SettingsProfile.VolumeMusic = (double)value;
+                Settings.VolumeMusic = (double)value;
                 break;
             case "VolumeSFX":
-                SettingsProfile.VolumeSFX = (double)value;
+                Settings.VolumeSFX = (double)value;
                 break;
             case "AlwaysPlayHitSound":
-                SettingsProfile.AlwaysPlayHitSound = (bool)value;
+                Settings.AlwaysPlayHitSound = (bool)value;
                 break;
             case "NoteSize":
-                SettingsProfile.NoteSize = (double)value;
+                Settings.NoteSize = (double)value;
                 break;
             case "CursorScale":
-                SettingsProfile.CursorScale = (double)value;
+                Settings.CursorScale = (double)value;
 
                 if (SceneManager.Scene.Name == "SceneMenu")
                 {
-                    Menu.MainMenu.Cursor.Size = new Vector2(32 * (float)SettingsProfile.CursorScale, 32 * (float)SettingsProfile.CursorScale);
+                    Menu.MainMenu.Cursor.Size = new Vector2(32 * (float)Settings.CursorScale, 32 * (float)Settings.CursorScale);
                 }
 
                 break;
             case "FadeOut":
-                SettingsProfile.FadeOut = (bool)value;
+                Settings.FadeOut = (bool)value;
                 break;
             case "Pushback":
-                SettingsProfile.Pushback = (bool)value;
+                Settings.Pushback = (bool)value;
                 break;
             case "Fullscreen":
-                SettingsProfile.Fullscreen = (bool)value;
+                Settings.Fullscreen = (bool)value;
                 DisplayServer.WindowSetMode((bool)value ? DisplayServer.WindowMode.ExclusiveFullscreen : DisplayServer.WindowMode.Windowed);
                 break;
             case "CursorTrail":
-                SettingsProfile.CursorTrail = (bool)value;
+                Settings.CursorTrail = (bool)value;
                 break;
             case "TrailTime":
-                SettingsProfile.TrailTime = (double)value;
+                Settings.TrailTime = (double)value;
                 break;
             case "TrailDetail":
-                SettingsProfile.TrailDetail = (double)value;
+                Settings.TrailDetail = (double)value;
                 break;
             case "CursorDrift":
-                SettingsProfile.CursorDrift = (bool)value;
+                Settings.CursorDrift = (bool)value;
                 break;
             case "VideoDim":
-                SettingsProfile.VideoDim = (double)value;
+                Settings.VideoDim = (double)value;
                 break;
             case "VideoRenderScale":
-                SettingsProfile.VideoRenderScale = (double)value;
+                Settings.VideoRenderScale = (double)value;
                 break;
             case "SimpleHUD":
-                SettingsProfile.SimpleHUD = (bool)value;
+                Settings.SimpleHUD = (bool)value;
                 break;
             case "AutoplayJukebox":
-                SettingsProfile.AutoplayJukebox = (bool)value;
+                Settings.AutoplayJukebox = (bool)value;
                 break;
             case "AbsoluteInput":
-                SettingsProfile.AbsoluteInput = (bool)value;
+                Settings.AbsoluteInput = (bool)value;
                 break;
             case "RecordReplays":
-                SettingsProfile.RecordReplays = (bool)value;
+                Settings.RecordReplays = (bool)value;
                 break;
             case "HitPopups":
-                SettingsProfile.HitPopups = (bool)value;
+                Settings.HitPopups = (bool)value;
                 break;
             case "MissPopups":
-                SettingsProfile.MissPopups = (bool)value;
+                Settings.MissPopups = (bool)value;
                 break;
             case "FPS":
-                SettingsProfile.FPS = (double)value;
-                Engine.MaxFps = SettingsProfile.UnlockFPS ? 0 : Convert.ToInt32(value);
+                Settings.FPS = (double)value;
+                Engine.MaxFps = Settings.UnlockFPS ? 0 : Convert.ToInt32(value);
                 break;
             case "UnlockFPS":
-                SettingsProfile.UnlockFPS = (bool)value;
-                Engine.MaxFps = SettingsProfile.UnlockFPS ? 0 : Convert.ToInt32(SettingsProfile.FPS);
+                Settings.UnlockFPS = (bool)value;
+                Engine.MaxFps = Settings.UnlockFPS ? 0 : Convert.ToInt32(Settings.FPS);
                 break;
         }
 
@@ -293,7 +294,7 @@ public partial class SettingsManager : Control
 
         for (int i = 0; i < spaces.ItemCount; i++)
         {
-            if (spaces.GetItemText(i) == SettingsProfile.Space)
+            if (spaces.GetItemText(i) == Settings.Space)
             {
                 spaces.Selected = i;
                 break;
@@ -308,7 +309,7 @@ public partial class SettingsManager : Control
 
             skins.AddItem(name, j);
 
-            if (SettingsProfile.Skin == name)
+            if (Settings.Skin == name)
             {
                 skins.Selected = j;
             }
@@ -320,7 +321,7 @@ public partial class SettingsManager : Control
 
         foreach (string path in Directory.GetFiles($"{Constants.USER_FOLDER}/profiles"))
         {
-            string name = path.Split("\\")[^1].TrimSuffix(".json");
+            string name = Path.GetFileName(path).TrimSuffix(".json");
 
             profiles.AddItem(name, j);
 
@@ -336,14 +337,14 @@ public partial class SettingsManager : Control
         {
             foreach (Panel option in category.GetNode("Container").GetChildren())
             {
-                var property = new SettingsProfile().GetType().GetProperty(option.Name);
+                var property = Settings.GetType().GetProperty(option.Name);
 
                 if (option.FindChild("HSlider") != null)
                 {
                     HSlider slider = option.GetNode<HSlider>("HSlider");
                     LineEdit lineEdit = option.GetNode<LineEdit>("LineEdit");
 
-                    slider.Value = (double)property.GetValue(new());
+                    slider.Value = (double)property.GetValue(Settings);
                     lineEdit.Text = (Math.Floor(slider.Value * 1000) / 1000).ToString();
 
                     if (connections)
@@ -395,7 +396,7 @@ public partial class SettingsManager : Control
                 {
                     CheckButton checkButton = option.GetNode<CheckButton>("CheckButton");
 
-                    checkButton.ButtonPressed = (bool)property.GetValue(new());
+                    checkButton.ButtonPressed = (bool)property.GetValue(Settings);
 
                     if (connections)
                     {
@@ -482,5 +483,83 @@ public partial class SettingsManager : Control
         {
             Input.MouseMode = Input.MouseModeEnum.Hidden;
         }
+    }
+
+    public static void Save(string profile = null)
+    {
+        profile ??= Phoenyx.Util.GetProfile();
+
+        Dictionary data = new()
+        {
+            ["_Version"] = 1
+        };
+
+        foreach (PropertyInfo property in typeof(SettingsProfile).GetProperties())
+        {
+            data[property.Name] = (Variant)typeof(Variant).GetMethod("From").MakeGenericMethod(property.GetValue(Settings).GetType()).Invoke(Settings, [property.GetValue(Settings)]);
+        }
+
+        File.WriteAllText($"{Constants.USER_FOLDER}/profiles/{profile}.json", Json.Stringify(data, "\t"));
+        Phoenyx.Skin.Save();
+        Logger.Log($"Saved settings {profile}");
+    }
+
+    public static void Load(string profile = null)
+    {
+        profile ??= Phoenyx.Util.GetProfile();
+
+        Exception err = null;
+
+        try
+        {
+            Godot.FileAccess file = Godot.FileAccess.Open($"{Constants.USER_FOLDER}/profiles/{profile}.json", Godot.FileAccess.ModeFlags.Read);
+            Dictionary data = (Dictionary)Json.ParseString(file.GetAsText());
+
+            file.Close();
+
+            foreach (PropertyInfo property in typeof(SettingsProfile).GetProperties())
+            {
+                if (!property.CanWrite)
+                {
+                    continue;
+                }
+
+                if (data.ContainsKey(property.Name))
+                {
+                    property.SetValue(Settings, data[property.Name]
+                        .GetType()
+                        .GetMethod("As", BindingFlags.Public | BindingFlags.Instance)
+                        .MakeGenericMethod(property.PropertyType)
+                        .Invoke(data[property.Name], null));
+                }
+            }
+
+            if (Settings.Fullscreen)
+            {
+                DisplayServer.WindowSetMode(DisplayServer.WindowMode.ExclusiveFullscreen);
+            }
+
+            ToastNotification.Notify($"Loaded profile [{profile}]");
+        }
+        catch (Exception exception)
+        {
+            err = exception;
+        }
+
+        if (!Directory.Exists($"{Constants.USER_FOLDER}/skins/{Settings.Skin}"))
+        {
+            Settings.Skin = "default";
+            ToastNotification.Notify($"Could not find skin {Settings.Skin}", 1);
+        }
+
+        Phoenyx.Skin.Load();
+
+        if (err != null)
+        {
+            ToastNotification.Notify("Settings file corrupted", 2);
+            throw Logger.Error($"Settings file corrupted; {err}");
+        }
+
+        Logger.Log($"Loaded settings {profile}");
     }
 }

@@ -3,6 +3,13 @@ using Godot;
 
 public partial class LegacyRenderer : MultiMeshInstance3D
 {
+    private SettingsProfile settings;
+
+    public override void _Ready()
+    {
+        settings = SettingsManager.Settings;
+    }
+
     public override void _Process(double delta)
     {
         if (!LegacyRunner.Playing)
@@ -12,13 +19,13 @@ public partial class LegacyRenderer : MultiMeshInstance3D
 
         Multimesh.InstanceCount = LegacyRunner.ToProcess;
 
-        float ar = (float)(LegacyRunner.CurrentAttempt.IsReplay ? LegacyRunner.CurrentAttempt.Replays[0].ApproachRate : SettingsProfile.ApproachRate);
-        float ad = (float)(LegacyRunner.CurrentAttempt.IsReplay ? LegacyRunner.CurrentAttempt.Replays[0].ApproachDistance : SettingsProfile.ApproachDistance);
+        float ar = (float)(LegacyRunner.CurrentAttempt.IsReplay ? LegacyRunner.CurrentAttempt.Replays[0].ApproachRate : settings.ApproachRate);
+        float ad = (float)(LegacyRunner.CurrentAttempt.IsReplay ? LegacyRunner.CurrentAttempt.Replays[0].ApproachDistance : settings.ApproachDistance);
         float at = ad / ar;
-        float fadeIn = (float)(LegacyRunner.CurrentAttempt.IsReplay ? LegacyRunner.CurrentAttempt.Replays[0].FadeIn : SettingsProfile.FadeIn);
-        bool fadeOut = LegacyRunner.CurrentAttempt.IsReplay ? LegacyRunner.CurrentAttempt.Replays[0].FadeOut : SettingsProfile.FadeOut;
-        bool pushback = LegacyRunner.CurrentAttempt.IsReplay ? LegacyRunner.CurrentAttempt.Replays[0].Pushback : SettingsProfile.Pushback;
-        float noteSize = (float)(LegacyRunner.CurrentAttempt.IsReplay ? LegacyRunner.CurrentAttempt.Replays[0].NoteSize : SettingsProfile.NoteSize);
+        float fadeIn = (float)(LegacyRunner.CurrentAttempt.IsReplay ? LegacyRunner.CurrentAttempt.Replays[0].FadeIn : settings.FadeIn);
+        bool fadeOut = LegacyRunner.CurrentAttempt.IsReplay ? LegacyRunner.CurrentAttempt.Replays[0].FadeOut : settings.FadeOut;
+        bool pushback = LegacyRunner.CurrentAttempt.IsReplay ? LegacyRunner.CurrentAttempt.Replays[0].Pushback : settings.Pushback;
+        float noteSize = (float)(LegacyRunner.CurrentAttempt.IsReplay ? LegacyRunner.CurrentAttempt.Replays[0].NoteSize : settings.NoteSize);
         Transform3D transform = new(new Vector3(noteSize / 2, 0, 0), new Vector3(0, noteSize / 2, 0), new Vector3(0, 0, noteSize / 2), Vector3.Zero);
         
         for (int i = 0; i < LegacyRunner.ToProcess; i++)

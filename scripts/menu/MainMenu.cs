@@ -9,6 +9,8 @@ namespace Menu;
 
 public partial class MainMenu : Control
 {
+    private SettingsProfile settings;
+
     public static Control Control;
     public static TextureRect Cursor;
 
@@ -92,6 +94,8 @@ public partial class MainMenu : Control
 
     public override void _Ready()
     {
+        settings = SettingsManager.Settings;
+
         Control = this;
 
         Phoenyx.Util.Setup();
@@ -175,12 +179,12 @@ public partial class MainMenu : Control
 
                             if (LegacyRunner.Playing)
                             {
-                                LegacyRunner.QueueStop();
+                                ((LegacyRunner)SceneManager.Scene).QueueStop(); // Will change
                             }
 
                             SoundManager.Song.Stop();
                             SceneManager.Load("res://scenes/game.tscn");
-                            LegacyRunner.Play(MapParser.Decode(matching[0].MapFilePath), matching[0].Speed, matching[0].StartFrom, matching[0].Modifiers, null, [.. matching]);
+                            ((LegacyRunner)SceneManager.Scene).Play(MapParser.Decode(matching[0].MapFilePath), matching[0].Speed, matching[0].StartFrom, matching[0].Modifiers, null, [.. matching]); // Same here
                             break;
                     }
                 }
@@ -240,7 +244,7 @@ public partial class MainMenu : Control
         FavoritedMaps = [];
 
         Cursor.Texture = Phoenyx.Skin.CursorImage;
-        Cursor.Size = new Vector2(32 * (float)SettingsProfile.CursorScale, 32 * (float)SettingsProfile.CursorScale);
+        Cursor.Size = new Vector2(32 * (float)settings.CursorScale, 32 * (float)settings.CursorScale);
 
         Godot.Collections.Array<Node> jukeboxBars = JukeboxSpectrum.GetChildren();
 
@@ -748,7 +752,7 @@ public partial class MainMenu : Control
         if (!SoundManager.Song.Playing)
         {
             SoundManager.PlayJukebox();
-            SoundManager.JukeboxPaused = !SettingsProfile.AutoplayJukebox;
+            SoundManager.JukeboxPaused = !settings.AutoplayJukebox;
         }
         else
         {
@@ -796,7 +800,7 @@ public partial class MainMenu : Control
         if (SoundManager.Song.Stream != null)
         {
             JukeboxProgress.AnchorRight = (float)Math.Clamp(SoundManager.Song.GetPlaybackPosition() / SoundManager.Song.Stream.GetLength(), 0, 1);
-            SoundManager.Song.VolumeDb = Mathf.Lerp(SoundManager.Song.VolumeDb, Phoenyx.Util.Quitting ? -80 : -80 + 70 * (float)Math.Pow(SettingsProfile.VolumeMusic / 100, 0.1) * (float)Math.Pow(SettingsProfile.VolumeMaster / 100, 0.1), (float)Math.Clamp(delta * 2, 0, 1));
+            SoundManager.Song.VolumeDb = Mathf.Lerp(SoundManager.Song.VolumeDb, Phoenyx.Util.Quitting ? -80 : -80 + 70 * (float)Math.Pow(settings.VolumeMusic / 100, 0.1) * (float)Math.Pow(settings.VolumeMaster / 100, 0.1), (float)Math.Clamp(delta * 2, 0, 1));
         }
 
         float prevHz = 0;
@@ -884,7 +888,8 @@ public partial class MainMenu : Control
 
                         SoundManager.Song.Stop();
                         SceneManager.Load("res://scenes/game.tscn");
-                        LegacyRunner.Play(map, Lobby.Speed, Lobby.StartFrom, Lobby.Mods);
+                        // TODO: Fix this :/
+                        ((LegacyRunner)SceneManager.Scene).Play(map, Lobby.Speed, Lobby.StartFrom, Lobby.Mods);
                     }
                     break;
                 case Key.Mediaplay:
@@ -1100,7 +1105,8 @@ public partial class MainMenu : Control
 
                     SoundManager.Song.Stop();
                     SceneManager.Load("res://scenes/game.tscn");
-                    LegacyRunner.Play(map, Lobby.Speed, Lobby.StartFrom, Lobby.Mods);
+                    // TODO
+                    ((LegacyRunner)SceneManager.Scene).Play(map, Lobby.Speed, Lobby.StartFrom, Lobby.Mods);
                 }
             }
 
@@ -1270,7 +1276,9 @@ public partial class MainMenu : Control
 
     public static void UpdateVolume()
     {
-        SettingsManager.Holder.GetNode("Categories").GetNode("Audio").GetNode("Container").GetNode("VolumeMaster").GetNode<HSlider>("HSlider").Value = SettingsProfile.VolumeMaster;
+        var settings = SettingsManager.Settings;
+
+        SettingsManager.Holder.GetNode("Categories").GetNode("Audio").GetNode("Container").GetNode("VolumeMaster").GetNode<HSlider>("HSlider").Value = settings.VolumeMaster;
     }
 
     public static void UpdateMapList()
@@ -1472,7 +1480,8 @@ public partial class MainMenu : Control
                     Replay replay = new($"{Constants.USER_FOLDER}/replays/{score.AttemptID}.phxr");
                     SoundManager.Song.Stop();
                     SceneManager.Load("res://scenes/game.tscn");
-                    LegacyRunner.Play(MapParser.Decode(replay.MapFilePath), replay.Speed, replay.StartFrom, replay.Modifiers, null, [replay]);
+                    // TODO
+                    ((LegacyRunner)SceneManager.Scene).Play(MapParser.Decode(replay.MapFilePath), replay.Speed, replay.StartFrom, replay.Modifiers, null, [replay]);
                 }
             };
 
