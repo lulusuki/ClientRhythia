@@ -22,16 +22,15 @@ config/icon="uid://bwygmhmegsm4f"
 
 [autoload]
 
-Keybinds="*res://scripts/KeybindsManager.cs"
-SkinManager="*res://scripts/skinning/SkinManager.cs"
-ToastNotification="*res://scripts/ToastNotification.cs"
-SoundManager="*res://scripts/SoundManager.cs"
-SettingsManager="*res://scripts/SettingsManager.cs"
-SceneManager="*res://scripts/SceneManager.cs"
-Phoenyx="*res://scripts/Phoenyx.cs"
-SkinProfile="*res://scripts/skinning/SkinProfile.cs"
-MapParser="*res://scripts/map/MapParser.cs"
 Constants="*res://scripts/Constants.cs"
+Keybinds="*res://scripts/KeybindsManager.cs"
+SceneManager="*res://scripts/SceneManager.cs"
+SettingsManager="*res://scripts/SettingsManager.cs"
+SkinManager="*res://scripts/skinning/SkinManager.cs"
+SoundManager="*res://scripts/SoundManager.cs"
+MapParser="*res://scripts/map/MapParser.cs"
+ToastNotification="*res://scripts/ToastNotification.cs"
+Phoenyx="*res://scripts/Phoenyx.cs"
 
 [debug]
 

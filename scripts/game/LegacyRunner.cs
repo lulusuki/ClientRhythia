@@ -6,7 +6,7 @@ using Godot;
 
 public partial class LegacyRunner : Node3D
 {
-    private static SettingsProfile settings;
+	private static SettingsProfile settings;
 
 	private static Node3D node3D;
 	private static readonly PackedScene player_score = GD.Load<PackedScene>("res://prefabs/player_score.tscn");
@@ -78,8 +78,8 @@ public partial class LegacyRunner : Node3D
 
 	public struct Attempt
 	{
-        private SettingsProfile settings;
-        private LegacyRunner runner;
+		private SettingsProfile settings;
+		private LegacyRunner runner;
 
 		public string ID = "";
 		public bool Stopped = false;
@@ -124,7 +124,7 @@ public partial class LegacyRunner : Node3D
 
 		public Attempt(Map map, double speed, double startFrom, Dictionary<string, bool> mods, string[] players = null, Replay[] replays = null)
 		{
-            settings = SettingsManager.Instance.Settings;
+			settings = SettingsManager.Instance.Settings;
 
 			ID = $"{map.ID}_{OS.GetUniqueId()}_{Time.GetDatetimeStringFromUnixTime((long)Time.GetUnixTimeFromSystem())}".Replace(":", "_");
 			Replays = replays;
@@ -235,7 +235,7 @@ public partial class LegacyRunner : Node3D
 
 			LastHitColour = SkinManager.Instance.Skin.Colors[index % SkinManager.Instance.Skin.Colors.Length];
 
-            float lateness = IsReplay ? HitsInfo[index] : (float)(((int)Progress - Map.Notes[index].Millisecond) / Speed);
+			float lateness = IsReplay ? HitsInfo[index] : (float)(((int)Progress - Map.Notes[index].Millisecond) / Speed);
 			float factor = 1 - Math.Max(0, lateness - 25) / 150f;
 			
 			if (!IsReplay)
@@ -453,7 +453,7 @@ public partial class LegacyRunner : Node3D
 	
 	public override void _Ready()
 	{
-        settings = SettingsManager.Instance.Settings;
+		settings = SettingsManager.Instance.Settings;
 
 		node3D = this;
 
@@ -517,7 +517,7 @@ public partial class LegacyRunner : Node3D
 		menuButtonsHolder.GetNode<Button>("Resume").Pressed += HideMenu;
 		menuButtonsHolder.GetNode<Button>("Restart").Pressed += Restart;
 		menuButtonsHolder.GetNode<Button>("Settings").Pressed += () => {
-			SettingsManager.ShowSettings();
+			SettingsManager.ShowMenu();
 		};
 		menuButtonsHolder.GetNode<Button>("Quit").Pressed += () => {
 			if (CurrentAttempt.Alive)
@@ -1078,7 +1078,7 @@ public partial class LegacyRunner : Node3D
 					
 					if (SettingsManager.Shown)
 					{
-						SettingsManager.HideSettings();
+						SettingsManager.HideMenu();
 					}
 					else
 					{
@@ -1159,7 +1159,7 @@ public partial class LegacyRunner : Node3D
 		CurrentAttempt.Qualifies = false;
 		Stop(false);
 
-        SceneManager.ReloadCurrentScene();
+		SceneManager.ReloadCurrentScene();
 		Play(MapParser.Decode(CurrentAttempt.Map.FilePath), CurrentAttempt.Speed, CurrentAttempt.StartFrom, CurrentAttempt.Mods, CurrentAttempt.Players, CurrentAttempt.Replays);
 	}
 	

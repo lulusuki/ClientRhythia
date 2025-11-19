@@ -7,7 +7,7 @@ extends Control
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_HIDDEN
 	
-	for button in $"Menus/Main/Buttons".get_children():
+	for button: Button in $"Menus/Main/Buttons".get_children():
 		var menu := menus.find_child(button.name, false)
 		
 		if menu != null:
@@ -35,7 +35,7 @@ func Transition(menu: Panel, instant: bool = false) -> void:
 	
 	var outTween := create_tween().set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	outTween.tween_property(lastMenu, "modulate", Color.TRANSPARENT, tweenTime)
-	outTween.tween_callback(func(): lastMenu.visible = false)
+	outTween.tween_callback(func() -> void: lastMenu.visible = false)
 	outTween.play()
 	
 	menu.visible = true

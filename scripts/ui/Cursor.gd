@@ -1,12 +1,15 @@
 extends TextureRect
 
-#var SkinProfile = load("res://scripts/skinning/SkinProfile.cs")
-#var SettingsManager = load("res://scripts/SettingsManager.cs")
+var skinManager = SkinManager
+var settingsManager = SettingsManager
 
 var mousePosition := Vector2.ZERO
 
 func _ready() -> void:
-	#SkinProfile.OnLoaded.connect(UpdateTexture)
+	skinManager.OnLoaded.connect(UpdateTexture)
+	settingsManager.Settings.FieldUpdated.connect(func(field: String, _value: Variant) -> void:
+		if field == "CursorScale": UpdateSize()
+	)
 	
 	UpdateTexture()
 	UpdateSize()
@@ -19,8 +22,7 @@ func _input(event: InputEvent) -> void:
 		mousePosition = event.position
 
 func UpdateTexture() -> void:
-	#texture = SkinProfile.CursorImage
-	pass
+	texture = skinManager.Skin.CursorImage
 
 func UpdateSize() -> void:
-	pass
+	size = Vector2.ONE * 32 * settingsManager.Settings.CursorScale

@@ -153,7 +153,7 @@ public partial class Phoenyx : Node
             Stats.Save();
         }
 
-        SettingsManager.UpdateSettings();
+        // SettingsManager.UpdateSettings();
         Stats.GamesOpened++;
 
         List<string> import = [];
