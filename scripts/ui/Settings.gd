@@ -28,7 +28,9 @@ func _ready() -> void:
 			UpdateToggle(toggle, value)
 	)
 	
-	deselect.pressed.connect(func() -> void: settingsManager.ShowMenu(false))
+	ShowMenu(false)
+	
+	deselect.pressed.connect(settingsManager.ShowMenu.bind(false))
 	
 	for buttonHolder: ColorRect in sidebar.get_children():
 		var category := categories.find_child(buttonHolder.name)
@@ -59,11 +61,10 @@ func _ready() -> void:
 func SetupSlider(setting: String, slider: HSlider, lineEdit: LineEdit) -> void:
 	var applyLineEdit = func() -> void:
 		var value := (lineEdit.placeholder_text if lineEdit.text == "" else lineEdit.text).to_float()
-		print(value)
 		settingsManager.ApplySetting(setting, value as Variant)
 	
-	lineEdit.text_submitted.connect(func(_text: String) -> void: applyLineEdit.call())
 	lineEdit.focus_exited.connect(applyLineEdit)
+	lineEdit.text_submitted.connect(func(_text: String) -> void: applyLineEdit.call())
 	slider.value_changed.connect(func(value: float) -> void:
 		settingsManager.ApplySetting(setting, value as Variant)
 	)

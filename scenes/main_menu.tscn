@@ -1,4 +1,4 @@
-[gd_scene load_steps=65 format=3 uid="uid://do18270a428ma"]
+[gd_scene load_steps=66 format=3 uid="uid://do18270a428ma"]
 
 [ext_resource type="Shader" uid="uid://c7ldko1kfg2ho" path="res://scripts/shaders/noise_waves.gdshader" id="1_3wgol"]
 [ext_resource type="Script" uid="uid://ci5tsr20d66sa" path="res://scripts/ui/menu/MainMenu.gd" id="1_vr8o3"]
@@ -12,6 +12,7 @@
 [ext_resource type="Script" uid="uid://cin7x4exuo7ce" path="res://scripts/ui/menu/ImportButton.gd" id="9_1a85y"]
 [ext_resource type="Script" uid="uid://b5ectac2a6rv5" path="res://scripts/ui/menu/QuitButton.gd" id="10_engjn"]
 [ext_resource type="Script" uid="uid://y2nprjegqk20" path="res://scripts/ui/menu/UserFolderButton.gd" id="10_hl5e0"]
+[ext_resource type="Script" uid="uid://bsek1gp3lmfff" path="res://scripts/ui/menu/RandomPickButton.gd" id="12_6h3lr"]
 [ext_resource type="Texture2D" uid="uid://co5ul5mlsanna" path="res://skin/mod_nofail.png" id="12_tcusk"]
 [ext_resource type="Texture2D" uid="uid://d1c7yqqmohmv1" path="res://skin/mod_ghost.png" id="13_4puye"]
 [ext_resource type="Script" uid="uid://bn5a8vwc46x4v" path="res://scripts/ui/menu/MapList.gd" id="13_engjn"]
@@ -472,8 +473,6 @@ alignment = 0
 script = ExtResource("10_engjn")
 
 [node name="Play" type="Panel" parent="Menus"]
-visible = false
-modulate = Color(1, 1, 1, 0)
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -494,48 +493,19 @@ offset_bottom = 128.0
 theme = ExtResource("6_engjn")
 theme_override_styles/panel = SubResource("StyleBoxEmpty_18lcc")
 
-[node name="Import" type="Button" parent="Menus/Play/SubTopBar"]
+[node name="HBoxContainer" type="HBoxContainer" parent="Menus/Play/SubTopBar"]
 layout_mode = 1
-anchors_preset = 1
-anchor_left = 1.0
+anchors_preset = -1
+anchor_top = 0.5
 anchor_right = 1.0
-offset_left = -448.0
-offset_top = 14.0
-offset_right = -374.0
-offset_bottom = 46.0
-grow_horizontal = 0
-focus_mode = 0
-theme = ExtResource("6_engjn")
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-text = "Import"
-script = ExtResource("9_1a85y")
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+alignment = 2
 
-[node name="UserFolder" type="Button" parent="Menus/Play/SubTopBar"]
-layout_mode = 1
-anchors_preset = 1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -556.0
-offset_top = 14.0
-offset_right = -456.0
-offset_bottom = 46.0
-grow_horizontal = 0
-focus_mode = 0
-theme = ExtResource("6_engjn")
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-text = "User Folder"
-script = ExtResource("10_hl5e0")
-
-[node name="Settings" type="Button" parent="Menus/Play/SubTopBar"]
-layout_mode = 1
-anchors_preset = 1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -644.0
-offset_top = 14.0
-offset_right = -564.0
-offset_bottom = 46.0
-grow_horizontal = 0
+[node name="Settings" type="Button" parent="Menus/Play/SubTopBar/HBoxContainer"]
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
 tooltip_text = "CTRL + O"
 focus_mode = 0
 theme = ExtResource("6_engjn")
@@ -543,38 +513,51 @@ theme_override_colors/font_color = Color(1, 1, 1, 1)
 text = "Settings"
 script = ExtResource("7_qywvv")
 
-[node name="Search" type="LineEdit" parent="Menus/Play/SubTopBar"]
-layout_mode = 1
-anchors_preset = 1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -258.0
-offset_top = 14.0
-offset_right = -8.0
-offset_bottom = 46.0
-grow_horizontal = 0
-mouse_default_cursor_shape = 0
+[node name="UserFolder" type="Button" parent="Menus/Play/SubTopBar/HBoxContainer"]
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+focus_mode = 0
 theme = ExtResource("6_engjn")
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_styles/focus = ExtResource("8_dj67d")
-placeholder_text = "Search"
-caret_blink = true
+text = "User Folder"
+script = ExtResource("10_hl5e0")
 
-[node name="SearchAuthor" type="LineEdit" parent="Menus/Play/SubTopBar"]
-layout_mode = 1
-anchors_preset = 1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -366.0
-offset_top = 14.0
-offset_right = -266.0
-offset_bottom = 46.0
-grow_horizontal = 0
+[node name="Import" type="Button" parent="Menus/Play/SubTopBar/HBoxContainer"]
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+focus_mode = 0
+theme = ExtResource("6_engjn")
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+text = "Import"
+script = ExtResource("9_1a85y")
+
+[node name="Random" type="Button" parent="Menus/Play/SubTopBar/HBoxContainer"]
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+focus_mode = 0
+theme = ExtResource("6_engjn")
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+text = "Random"
+script = ExtResource("12_6h3lr")
+
+[node name="SearchAuthor" type="LineEdit" parent="Menus/Play/SubTopBar/HBoxContainer"]
+custom_minimum_size = Vector2(120, 32)
+layout_mode = 2
 mouse_default_cursor_shape = 0
 theme = ExtResource("6_engjn")
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_styles/focus = ExtResource("8_dj67d")
 placeholder_text = "Author"
+caret_blink = true
+
+[node name="Search" type="LineEdit" parent="Menus/Play/SubTopBar/HBoxContainer"]
+custom_minimum_size = Vector2(220, 32)
+layout_mode = 2
+mouse_default_cursor_shape = 0
+theme = ExtResource("6_engjn")
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_styles/focus = ExtResource("8_dj67d")
+placeholder_text = "Search"
 caret_blink = true
 
 [node name="MapList" type="ScrollContainer" parent="Menus/Play"]
@@ -590,6 +573,7 @@ grow_horizontal = 0
 mouse_filter = 2
 theme = ExtResource("6_engjn")
 horizontal_scroll_mode = 0
+vertical_scroll_mode = 2
 script = ExtResource("13_engjn")
 
 [node name="Container" type="VBoxContainer" parent="Menus/Play/MapList"]
