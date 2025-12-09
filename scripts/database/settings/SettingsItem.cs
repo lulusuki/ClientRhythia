@@ -10,7 +10,7 @@ public class SettingsItem<[MustBeVariant] T> : ISettingsItem
         DefaultValue = value;
     }
 
-    public readonly Type Type = typeof(T);
+    public Type Type { get; } = typeof(T);
 
     public string Id { get; set; } = "";
 
@@ -24,7 +24,7 @@ public class SettingsItem<[MustBeVariant] T> : ISettingsItem
 
     public SettingsList<T> List { get; set; } = default;
 
-    public SettingsSlider<T> Slider { get; set; } = default;
+    public SettingsSlider Slider { get; set; } = default;
 
     public SettingsSection Section { get; set; } = SettingsSection.None;
 
@@ -41,6 +41,7 @@ public class SettingsItem<[MustBeVariant] T> : ISettingsItem
         {
             field = value;
             UpdateAction?.Invoke(value);
+            List?.SelectedValue = value;
         }
     }
 
@@ -55,4 +56,6 @@ public class SettingsItem<[MustBeVariant] T> : ISettingsItem
     public Action<T> UpdateAction { get; set; } = null;
 
     public static implicit operator T(SettingsItem<T> item) => item.Value;
+
+    ISettingsList ISettingsItem.List => List;
 }

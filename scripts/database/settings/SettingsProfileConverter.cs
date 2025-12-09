@@ -30,7 +30,7 @@ public class SettingsProfileConverter
                 switch (value.VariantType)
                 {
                     case Variant.Type.Float:
-                        data[property.Name] = (float)value;
+                        data[property.Name] = Math.Round((float)value, 4);
                         break;
                     default:
                         data[property.Name] = value;
@@ -47,8 +47,6 @@ public class SettingsProfileConverter
         try
         {
             Dictionary data = (Dictionary)Json.ParseString(File.ReadAllText(path));
-
-            GD.Print("data", data);
 
             foreach (var property in typeof(SettingsProfile).GetProperties())
             {

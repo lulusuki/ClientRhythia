@@ -514,7 +514,7 @@ public partial class SettingsProfile
             Section = SettingsSection.Visual,
         };
 
-        Fullscreen = new(false)
+        Fullscreen = new(true)
         {
             Id = "Fullscreen",
             Title = "Fullscreen",
@@ -639,21 +639,17 @@ public partial class SettingsProfile
     /// into a dictionary dependent of their <see cref="SettingsSection"/>
     /// </summary>
     /// <returns>Dictionary of Lists that has ordered <see cref="SettingsItem{T}"/></returns>
-    public Dictionary<SettingsSection, List<SettingsItem<Variant>>> ToOrderedSectionList()
+    public Dictionary<SettingsSection, List<ISettingsItem>> ToOrderedSectionList()
     {
-        var dictionary = new Dictionary<SettingsSection, List<SettingsItem<Variant>>>();
+        var dictionary = new Dictionary<SettingsSection, List<ISettingsItem>>();
 
         foreach (SettingsSection section in Enum.GetValues(typeof(SettingsSection)))
         {
-            dictionary.Add(section, new List<SettingsItem<Variant>>());
+            dictionary.Add(section, new List<ISettingsItem>());
         }
 
-        typeof(SettingsProfile).GetProperties()
-            .Where
-            (
-                p => p.GetValue(this).GetType().IsGenericType
-                && p.GetValue(this).GetType().GetGenericTypeDefinition() == typeof(SettingsItem<>)
-            )
+        var items = typeof(SettingsProfile).GetProperties()
+            .Where(p => typeof(ISettingsItem).IsAssignableFrom(p.PropertyType))
             .Where(p => Attribute.IsDefined(p, typeof(OrderAttribute)))
             .OrderBy
             (
@@ -661,35 +657,15 @@ public partial class SettingsProfile
                 .GetCustomAttributes(typeof(OrderAttribute), false)
                 .Single()).Order
             )
-            .Select(p => (SettingsItem<Variant>)p.GetValue(this))
-            .ToList()
-            .ForEach(setting => dictionary[setting.Section].Add(setting));
+            .Select(p => (ISettingsItem)p.GetValue(this))
+            .ToList();
+
+        foreach (var item in items)
+        {
+            dictionary[item.Section].Add(item);
+        }
 
         return dictionary;
-    }
-
-    public List<SettingsItem<Variant>> ToOrderedList()
-    {
-        var settings = new List<SettingsItem<Variant>>();
-
-        typeof(SettingsProfile).GetProperties()
-            .Where
-            (
-                p => p.GetValue(this).GetType().IsGenericType
-                && p.GetValue(this).GetType().GetGenericTypeDefinition() == typeof(SettingsItem<>)
-            )
-            .Where(p => Attribute.IsDefined(p, typeof(OrderAttribute)))
-            .OrderBy
-            (
-                p => ((OrderAttribute)p
-                .GetCustomAttributes(typeof(OrderAttribute), false)
-                .Single()).Order
-            )
-            .Select(p => (SettingsItem<Variant>)p.GetValue(this))
-            .ToList()
-            .ForEach(setting => settings.Add(setting));
-
-        return settings;
     }
 
     private void updateApproachTime()

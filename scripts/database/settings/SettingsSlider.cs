@@ -1,10 +1,10 @@
 ﻿
 
-public class SettingsSlider<T>
+public class SettingsSlider
 {
-    public T MinValue { get; set; } = default;
+    public float MinValue { get; set; } = default;
 
-    public T MaxValue { get; set; } = default;
+    public float MaxValue { get; set; } = default;
 
-    public T Step { get; set; } = default;
+    public float Step { get; set; } = default;
 }

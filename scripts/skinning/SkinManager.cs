@@ -28,7 +28,7 @@ public partial class SkinManager : Node
 
 		File.WriteAllText($"{Constants.USER_FOLDER}/skins/{settings.Skin.Value}/colors.txt", skin.RawColors);
 		File.WriteAllText($"{Constants.USER_FOLDER}/skins/{settings.Skin.Value}/space.txt", skin.GameSpaceName);
-		Logger.Log($"Saved skin {settings.Skin}");
+		Logger.Log($"Saved skin {settings.Skin.Value}");
 
 		Instance.EmitSignal(SignalName.OnSaved);
 	}

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Godot;
 
-public class SettingsList<[MustBeVariant] T>
+public class SettingsList<[MustBeVariant] T> : ISettingsList
 {
     public SettingsList(T value)
     {
@@ -10,9 +10,15 @@ public class SettingsList<[MustBeVariant] T>
         Values.Add(value);
     }
 
-    public T SelectedValue { get; private set; } = default;
+    public T SelectedValue { get; set; } = default;
 
     public T DefaultValue { get; set; } = default;
 
     public List<T> Values { get; set; } = new();
+
+    Variant ISettingsList.DefaultValue => Variant.From(DefaultValue);
+
+    Variant ISettingsList.SelectedValue { get => Variant.From(SelectedValue); set => SelectedValue = value.As<T>(); }
+
+    IList<Variant> ISettingsList.Values => VariantUtil.ToList(Values);
 }

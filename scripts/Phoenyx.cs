@@ -112,7 +112,6 @@ public partial class Phoenyx : Node
 
         if (!File.Exists($"{Constants.USER_FOLDER}/profiles/default.json"))
         {
-            GD.Print("Test");
             SettingsManager.Save("default");
         }
 

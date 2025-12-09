@@ -469,7 +469,7 @@ public partial class SettingsManager : Node
         if (!Directory.Exists($"{Constants.USER_FOLDER}/skins/{Instance.Settings.Skin.Value}"))
         {
             Instance.Settings.Skin.Value = new("default");
-            ToastNotification.Notify($"Could not find skin {Instance.Settings.Skin}", 1);
+            ToastNotification.Notify($"Could not find skin {Instance.Settings.Skin.Value}", 1);
         }
 
         SkinManager.Load();
