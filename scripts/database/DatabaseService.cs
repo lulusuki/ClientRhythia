@@ -14,10 +14,6 @@ public sealed class DatabaseService
         DB = new LiteDatabase($"{Constants.USER_FOLDER}/data.db");
     }
 
-    public ILiteCollection<SettingsProfile> SettingsProfile => DB.GetCollection<SettingsProfile>();
-
-    public Stats Stats => DB.GetCollection<Stats>().FindById("_stats");
-
     public void Dispose()
     {
         DB.Dispose();

@@ -18,8 +18,6 @@ public partial class Stats : Node
         var collection = db.GetCollection<Stats>();
         var stats = collection.FindById("_STATS");
 
-        
-
         if (stats == null)
         {
             stats = new Stats();
