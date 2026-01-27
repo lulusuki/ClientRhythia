@@ -651,7 +651,7 @@ public partial class LegacyRunner : BaseScene
 
 		Discord.Client.UpdateDetails("Playing a Map");
 		Discord.Client.UpdateState(CurrentAttempt.Map.PrettyTitle);
-		Discord.Client.UpdateEndTime(DateTime.UtcNow.AddSeconds((Time.GetUnixTimeFromSystem() + CurrentAttempt.Map.Length / 1000 / CurrentAttempt.Speed)));
+		// Discord.Client.UpdateEndTime(DateTime.UtcNow.AddSeconds((Time.GetUnixTimeFromSystem() + CurrentAttempt.Map.Length / 1000 / CurrentAttempt.Speed)));
 
 		Input.MouseMode = settings.AbsoluteInput.Value || CurrentAttempt.IsReplay ? Input.MouseModeEnum.ConfinedHidden : Input.MouseModeEnum.Captured;
 		Input.UseAccumulatedInput = false;
@@ -1194,7 +1194,7 @@ public partial class LegacyRunner : BaseScene
 			{
 				CurrentAttempt.Progress = CurrentAttempt.Map.Notes[CurrentAttempt.PassedNotes].Millisecond - settings.ApproachTime * 1500 * CurrentAttempt.Speed; // turn AT to ms and multiply by 1.5x
 				
-				Discord.Client.UpdateEndTime(DateTime.UtcNow.AddSeconds((Time.GetUnixTimeFromSystem() + (CurrentAttempt.Map.Length - CurrentAttempt.Progress) / 1000 / CurrentAttempt.Speed)));
+				// Discord.Client.UpdateEndTime(DateTime.UtcNow.AddSeconds((Time.GetUnixTimeFromSystem() + (CurrentAttempt.Map.Length - CurrentAttempt.Progress) / 1000 / CurrentAttempt.Speed)));
 				
 				if (CurrentAttempt.Map.AudioBuffer != null)
 				{

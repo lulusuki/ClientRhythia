@@ -1,5 +1,6 @@
 using Godot;
 using System;
+using System.Collections.Generic;
 
 public partial class MapInfo : AspectRatioContainer
 {
@@ -12,6 +13,7 @@ public partial class MapInfo : AspectRatioContainer
     private Panel holder;
 
     private readonly PackedScene infoContainerTemplate = ResourceLoader.Load<PackedScene>("res://prefabs/map_info_container.tscn");
+    private Stack<MapInfoContainer> infoContainerCache = [];
 
     public override void _Ready()
     {
@@ -31,13 +33,17 @@ public partial class MapInfo : AspectRatioContainer
 	public void Select(Map map)
 	{
         if (Map != null && map.ID == Map.ID) { return; }
-
+        
         Map = map;
 		
         var oldContainer = InfoContainer;
-        InfoContainer?.Transition(false).TweenCallback(Callable.From(() => { holder.RemoveChild(oldContainer); oldContainer.QueueFree(); }));
 
-        InfoContainer = infoContainerTemplate.Instantiate<MapInfoContainer>();
+        InfoContainer?.Transition(false).TweenCallback(Callable.From(() => {
+            holder.RemoveChild(oldContainer);
+            infoContainerCache.Push(oldContainer);
+        }));
+
+        InfoContainer = infoContainerCache.Count > 0 ? infoContainerCache.Pop() : infoContainerTemplate.Instantiate<MapInfoContainer>();
 
         holder.AddChild(InfoContainer);
 		InfoContainer.Setup(map);

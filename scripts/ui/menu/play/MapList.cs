@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 public partial class MapList : Panel, ISkinnable
 {
@@ -109,14 +110,15 @@ public partial class MapList : Panel, ISkinnable
         scrollBarBackgroundBottom = scrollBarBackground.GetNode<TextureRect>("Bottom");
 
         MouseExited += () => { toggleSelectionCursor(false); };
-        Resized += () => { UpdateLayout(Layout); };
+        Resized += clear;
         SkinManager.Instance.Loaded += UpdateSkin;
         MapParser.Instance.MapsImported += maps => {
             UpdateMaps();
             Select(maps[0]);
         };
 
-        UpdateMaps();
+        Task.Run(() => UpdateMaps());
+
         UpdateLayout(Layout);
         UpdateSkin();
     }
@@ -344,11 +346,12 @@ public partial class MapList : Panel, ISkinnable
         Focus(map);
 
         MapInfo.Instance.Select(map);
+        SceneManager.Space.UpdateMap(map);
     }
 
     public void Focus(Map map)
     {
-        TargetScroll = Maps.FindIndex(otherMap => otherMap.ID == map.ID) * (buttonMinSize + Spacing) / buttonsPerContainer + buttonMinSize - Size.Y / 2;
+        TargetScroll = Maps.FindIndex(otherMap => otherMap.ID == map.ID) / buttonsPerContainer * (buttonMinSize + Spacing) + buttonMinSize / 2 - Size.Y / 2;
     }
 
     public void UpdateMaps(string search = "", string author = "")
@@ -384,19 +387,7 @@ public partial class MapList : Panel, ISkinnable
         buttonHoverSize = layout == ListLayout.List ? WideButtonHoveredSize : SquareButtonHoveredSize;
         buttonSelectSize = layout == ListLayout.List ? WideButtonSelectedSize : SquareButtonSelectedSize;
 
-        hoveredButton = null;
-
-        foreach (KeyValuePair<string, MapButton> entry in mapButtons)
-        {
-            entry.Value.QueueFree();
-        }
-        foreach (MapButton button in mapButtonCache)
-        {
-            button.QueueFree();
-        }
-
-        mapButtons.Clear();
-        mapButtonCache.Clear();
+        clear();
     }
     
     public void UpdateSkin(SkinProfile skin = null)
@@ -459,12 +450,39 @@ public partial class MapList : Panel, ISkinnable
         tween.TweenProperty(selectionCursor, "modulate", Color.Color8(255, 255, 255, (byte)(display ? 255 : 0)), 0.1);
     }
 
+    private void clear()
+    {
+        hoveredButton = null;
+
+        foreach (KeyValuePair<string, MapButton> entry in mapButtons)
+        {
+            entry.Value.QueueFree();
+        }
+        foreach (MapButton button in mapButtonCache)
+        {
+            button.QueueFree();
+        }
+        foreach (KeyValuePair<int, HBoxContainer> entry in containers)
+        {
+            entry.Value.QueueFree();
+        }
+        foreach (HBoxContainer container in containerCache)
+        {
+            container.QueueFree();
+        }
+
+        mapButtons.Clear();
+        mapButtonCache.Clear();
+        containers.Clear();
+        containerCache.Clear();
+    }
+
     private void shuffle()
     {
         List<Map> shuffled = [];
         shuffled.AddRange(Maps.Shuffle());
         Maps = shuffled;
 
-        UpdateLayout(Layout);
+        clear();
     }
 }

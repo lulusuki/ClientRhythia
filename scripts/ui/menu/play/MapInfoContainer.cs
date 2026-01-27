@@ -77,25 +77,6 @@ public partial class MapInfoContainer : Panel, ISkinnable
         dim = GetNode<ColorRect>("Dim");
         outlineMaterial = info.GetNode<Panel>("Outline").Material as ShaderMaterial;
 
-        // Transition
-
-        info.OffsetLeft -= 64;
-		info.OffsetRight -= 64;
-		actions.OffsetLeft -= 80;
-		actions.OffsetRight -= 80;
-		leaderboard.OffsetLeft -= 96;
-		leaderboard.OffsetRight -= 96;
-
-        Tween inTween = CreateTween().SetEase(Tween.EaseType.Out).SetParallel();
-        inTween.SetTrans(Tween.TransitionType.Quint).TweenProperty(info, "offset_left", 0, 0.5);
-		inTween.TweenProperty(info, "offset_right", 0, 0.5);
-		inTween.SetTrans(Tween.TransitionType.Quart).TweenProperty(actions, "offset_left", 0, 0.6);
-		inTween.TweenProperty(actions, "offset_right", 0, 0.6);
-		inTween.SetTrans(Tween.TransitionType.Cubic).TweenProperty(leaderboard, "offset_left", 0, 0.7);
-		inTween.TweenProperty(leaderboard, "offset_right", 0, 0.7);
-
-        OffsetRight = 0;
-        Position += Vector2.Left * 64;
         Modulate = Color.Color8(255, 255, 255, 0);
 
         // Speed setup
@@ -272,7 +253,28 @@ public partial class MapInfoContainer : Panel, ISkinnable
         Map = map;
         Name = map.ID;
 
-        SceneManager.Space.UpdateMap(map);
+        // Transition
+
+        Position = Vector2.Zero;
+        Scale = Vector2.One;
+
+        info.OffsetLeft -= 64;
+		info.OffsetRight -= 64;
+		actions.OffsetLeft -= 80;
+		actions.OffsetRight -= 80;
+		leaderboard.OffsetLeft -= 96;
+		leaderboard.OffsetRight -= 96;
+
+        Tween inTween = CreateTween().SetEase(Tween.EaseType.Out).SetParallel();
+        inTween.SetTrans(Tween.TransitionType.Quint).TweenProperty(info, "offset_left", 0, 0.5);
+		inTween.TweenProperty(info, "offset_right", 0, 0.5);
+		inTween.SetTrans(Tween.TransitionType.Quart).TweenProperty(actions, "offset_left", 0, 0.6);
+		inTween.TweenProperty(actions, "offset_right", 0, 0.6);
+		inTween.SetTrans(Tween.TransitionType.Cubic).TweenProperty(leaderboard, "offset_left", 0, 0.7);
+		inTween.TweenProperty(leaderboard, "offset_right", 0, 0.7);
+
+        OffsetRight = 0;
+        Position += Vector2.Left * 64;
 
         // Info
 
