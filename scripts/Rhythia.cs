@@ -4,13 +4,10 @@ using System.Globalization;
 using System.IO;
 using Godot;
 using Godot.NativeInterop;
-using LiteDB;
 
 public partial class Rhythia : Node
 {
     private static bool loaded = false;
-
-    private DatabaseService databaseService = DatabaseService.Instance;
 
     [Signal]
     public delegate void FilesDroppedEventHandler(string[] files);
@@ -117,7 +114,7 @@ public partial class Rhythia : Node
 
         List<string> import = [];
 
-        foreach (string file in Directory.GetFiles($"{Constants.USER_FOLDER}/maps"))
+        foreach (string file in Directory.GetFiles($"{Constants.USER_FOLDER}/maps", $"*.{Constants.DEFAULT_MAP_EXT}", SearchOption.AllDirectories))
         {
             string ext = file.GetExtension();
 
@@ -225,7 +222,6 @@ public partial class Rhythia : Node
         }
 
         Discord.Client.Dispose();
-        DatabaseService.Instance.Dispose();
         
         Instance.GetTree().Quit();
     }

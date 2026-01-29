@@ -96,7 +96,7 @@ public partial class MapList : Panel, ISkinnable
     public override void _Ready()
     {
         Instance = this;
-    
+
         mask = GetNode<TextureRect>("Mask");
         selectionCursor = GetNode<TextureRect>("SelectionCursor");
         scrollBar = GetNode<Panel>("ScrollBar");
@@ -143,7 +143,7 @@ public partial class MapList : Panel, ISkinnable
         }
 
         Vector2 mousePos = DisplayServer.MouseGetPosition();
-        
+
         if (DragScroll && IsVisibleInTree())
         {
             float dragDelta = (lastMousePos.Y - mousePos.Y) * 30;
@@ -183,7 +183,7 @@ public partial class MapList : Panel, ISkinnable
             float top = containerIndex * (buttonMinSize + Spacing) - (float)Scroll;
             float bottom = top + buttonMinSize;
             bool display = top < Size.Y && bottom > 0;
-            MapButton button = mapButtons.TryGetValue(map.ID, out MapButton value) ? value : null;
+            MapButton button = mapButtons.TryGetValue(map.Name, out MapButton value) ? value : null;
 
             // Cache/ignore if outside map list
 
@@ -202,13 +202,13 @@ public partial class MapList : Panel, ISkinnable
                             hoveredButton = null;
                         }
 
-                        mapButtons.Remove(buttonSibling.Map.ID);
+                        mapButtons.Remove(buttonSibling.Map.Name);
                         mapButtonCache.Push(buttonSibling);
                         parentContainer.RemoveChild(buttonSibling);
                         buttonSibling.Deselect();
                         buttonSibling.UpdateOutline(0f, 0f);
                     }
-                    
+
                     mask.RemoveChild(parentContainer);
                     containers.Remove(containerIndex);
                     containerCache.Push(parentContainer);
@@ -227,16 +227,16 @@ public partial class MapList : Panel, ISkinnable
                 containers[containerIndex] = container;
                 mask.AddChild(container);
             }
-            
+
             if (button == null)
             {
                 button = mapButtonCache.Count > 0 ? mapButtonCache.Pop() : setupButton(Layout == ListLayout.List ? mapButtonWideTemplate.Instantiate<MapButtonWide>() : mapButtonSquareTemplate.Instantiate<MapButtonSquare>());
 
                 button.ListIndex = i;
                 button.Container = container;
-                mapButtons[map.ID] = button;
+                mapButtons[map.Name] = button;
                 container.AddChild(button);
-                button.UpdateInfo(map, map.ID == selectedMapID);
+                button.UpdateInfo(map, map.Name == selectedMapID);
             }
 
             if (container != lastContainer)
@@ -261,7 +261,7 @@ public partial class MapList : Panel, ISkinnable
             hoveredButton != null && hoveredButton.IsInsideTree() && DisplaySelectionCursor ? hoveredButton.Holder.Position.X - 60 : -80,
             Math.Clamp(hoveredButton != null && hoveredButton.IsInsideTree() ? hoveredButton.Container.Position.Y + hoveredButton.Size.Y / 2 - selectionCursor.Size.Y / 2 : selectionCursor.Position.Y, 0, Size.Y)
         );
-        
+
         selectionCursor.Position = selectionCursor.Position.Lerp(selectionCursorPos, (float)Math.Min(1, 8 * delta));
         selectionCursor.Rotation = -selectionCursor.Position.Y / 60;
 
@@ -269,7 +269,7 @@ public partial class MapList : Panel, ISkinnable
         {
             int index = i + firstIndex;
             var container = drawnContainers[i];
-            
+
             float sizeOffset = containerSizeOffsets[i];
             float indexOffset = index * (buttonMinSize + Spacing);
             float top = indexOffset - (float)Scroll + (buttonMinSize + buttonHoverSize + buttonSelectSize) / 2;
@@ -320,13 +320,13 @@ public partial class MapList : Panel, ISkinnable
 
     public void Select(Map map, bool playIfPreSelected = true)
     {
-        if (selectedMapID != null && selectedMapID != map.ID && mapButtons.TryGetValue(selectedMapID, out MapButton value))
+        if (selectedMapID != null && selectedMapID != map.Name && mapButtons.TryGetValue(selectedMapID, out MapButton value))
         {
             value.Deselect();
             value.UpdateOutline(0f);
         }
 
-        if (SoundManager.Map == null || SoundManager.Map.ID != map.ID)
+        if (SoundManager.Map == null || SoundManager.Map.Name != map.Name)
         {
             SoundManager.PlayJukebox(map);
         }
@@ -336,12 +336,12 @@ public partial class MapList : Panel, ISkinnable
             Lobby.SetMap(map);
         }
 
-        if (selectedMapID == map.ID && playIfPreSelected)
+        if (selectedMapID == map.Name && playIfPreSelected)
         {
             LegacyRunner.Play(Lobby.Map, Lobby.Speed, Lobby.StartFrom, Lobby.Modifiers);
         }
 
-        selectedMapID = map.ID;
+        selectedMapID = map.Name;
 
         Focus(map);
 
@@ -351,7 +351,7 @@ public partial class MapList : Panel, ISkinnable
 
     public void Focus(Map map)
     {
-        TargetScroll = Maps.FindIndex(otherMap => otherMap.ID == map.ID) / buttonsPerContainer * (buttonMinSize + Spacing) + buttonMinSize / 2 - Size.Y / 2;
+        TargetScroll = Maps.FindIndex(otherMap => otherMap.Name == map.Name) / buttonsPerContainer * (buttonMinSize + Spacing) + buttonMinSize / 2 - Size.Y / 2;
 
         if (SceneManager.Scene is MainMenu mainMenu)
         {
@@ -366,11 +366,11 @@ public partial class MapList : Panel, ISkinnable
         List<Map> unfavorited = [];
 
         // temporary until db is implemented
-        foreach (string path in Directory.GetFiles($"{Constants.USER_FOLDER}/maps"))
+        foreach (string path in Directory.GetFiles($"{Constants.USER_FOLDER}/maps", $"*.{Constants.DEFAULT_MAP_EXT}", SearchOption.AllDirectories))
 		{
             Map map = MapParser.Decode(path);
 
-            (MapManager.IsFavorited(map) ? Maps : unfavorited).Add(map);
+            (map.Favorite ? Maps : unfavorited).Add(map);
         }
 
         foreach (Map map in unfavorited)
@@ -394,7 +394,7 @@ public partial class MapList : Panel, ISkinnable
 
         clear();
     }
-    
+
     public void UpdateSkin(SkinProfile skin = null)
     {
         skin ??= SkinManager.Instance.Skin;
@@ -414,7 +414,7 @@ public partial class MapList : Panel, ISkinnable
         button.MinimumSize = buttonMinSize;
         button.HoveredSizeOffset = buttonHoverSize;
         button.SelectedSizeOffset = buttonSelectSize;
-        
+
         button.MouseHovered += (hovered) => {
             if (hovered)
             {
@@ -422,7 +422,7 @@ public partial class MapList : Panel, ISkinnable
                 if (Layout == ListLayout.List) { toggleSelectionCursor(true); }
             }
 
-            if (button.Map.ID != selectedMapID)
+            if (button.Map.Name != selectedMapID)
             {
                 button.UpdateOutline(hovered ? 0.5f : 0);
             }
@@ -443,7 +443,7 @@ public partial class MapList : Panel, ISkinnable
 	private void toggleSelectionCursor(bool display)
 	{
         if (DisplaySelectionCursor == display) { return; }
-        
+
         DisplaySelectionCursor = display;
 
 		if (display && hoveredButton != null)

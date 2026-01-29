@@ -38,7 +38,7 @@ public partial class MapInfoContainer : Panel, ISkinnable
     private VBoxContainer lbContainer;
     private Button lbExpand;
     private Button lbHide;
-    
+
     private ColorRect dim;
     private ShaderMaterial outlineMaterial;
 
@@ -97,7 +97,7 @@ public partial class MapInfoContainer : Panel, ISkinnable
             speed *= 100;
 
             double rounded = Math.Round(speed * 10) / 10;
-            
+
             if (Math.Abs(rounded - speed) <= Mathf.Epsilon)
             {
                 speed = rounded;
@@ -118,8 +118,8 @@ public partial class MapInfoContainer : Panel, ISkinnable
             value = Math.Clamp(value, 25, 1000) / 100;
 
             Lobby.SetSpeed(value);
-            
-            if (SoundManager.Map.ID != Map.ID)
+
+            if (SoundManager.Map.Name != Map.Name)
             {
                 SoundManager.PlayJukebox(Map);
             }
@@ -166,7 +166,7 @@ public partial class MapInfoContainer : Panel, ISkinnable
             if (split[0].IsValidFloat())
             {
                 float inputValue = split[0].ToFloat();
-                
+
                 if (inputValue < 1)
                 {
                     inputValue *= Map.Length / 1000;
@@ -178,12 +178,12 @@ public partial class MapInfoContainer : Panel, ISkinnable
             value = Math.Clamp(value * 1000, 0, Map.Length);
 
             Lobby.SetStartFrom(value);
-            
-            if (SoundManager.Map.ID != Map.ID)
+
+            if (SoundManager.Map.Name != Map.Name)
             {
                 SoundManager.PlayJukebox(Map);
             }
-            
+
             if (seek)
             {
                 SoundManager.Song.Play((float)Lobby.StartFrom / 1000);
@@ -256,7 +256,7 @@ public partial class MapInfoContainer : Panel, ISkinnable
 	public void Setup(Map map)
 	{
         Map = map;
-        Name = map.ID;
+        Name = map.Name;
 
         // Transition
 
@@ -284,7 +284,7 @@ public partial class MapInfoContainer : Panel, ISkinnable
         // Info
 
         mainLabel.Text = string.Format(mainLabelFormat, map.PrettyTitle, Constants.DIFFICULTY_COLORS[map.Difficulty].ToHtml(), map.DifficultyName, map.PrettyMappers);
-        extraLabel.Text = string.Format(extraLabelFormat, Util.String.FormatTime(map.Length / 1000), map.Notes.Length, map.ID);
+        extraLabel.Text = string.Format(extraLabelFormat, Util.String.FormatTime(map.Length / 1000), map.Notes.Length, map.Name);
         coverBackground.SelfModulate = Constants.DIFFICULTY_COLORS[map.Difficulty];
         artistLink.Visible = map.ArtistLink != "";
         artistLink.Text = string.Format(artistLinkFormat, map.ArtistPlatform);
@@ -299,32 +299,28 @@ public partial class MapInfoContainer : Panel, ISkinnable
 
         // Leaderboard
 
-        if (File.Exists($"{Constants.USER_FOLDER}/pbs/{map.ID}"))
-		{
-			Leaderboard = new(map.ID, $"{Constants.USER_FOLDER}/pbs/{map.ID}");
-		}
-        
-		if (!Leaderboard.Valid || Leaderboard.ScoreCount == 0)
-		{
-            leaderboard.Visible = false;
+        if (File.Exists($"{Constants.USER_FOLDER}/pbs/{map.Name}"))
+        {
+            Leaderboard = new(map.Name, $"{Constants.USER_FOLDER}/pbs/{map.Name}");
         }
-		else
-		{
-            foreach (Node child in lbContainer.GetChildren())
-            {
-                lbContainer.RemoveChild(child);
-            }
 
-            for (int i = 0; i < Math.Min(8, Leaderboard.ScoreCount); i++)
-            {
-                ScorePanel panel = leaderboardScoreTemplate.Instantiate<ScorePanel>();
-				
-                lbContainer.AddChild(panel);
-                panel.Setup(Leaderboard.Scores[i]);
-                panel.GetNode<ColorRect>("Background").Color = Color.Color8(255, 255, 255, (byte)(i % 2 == 0 ? 0 : 8));
+        leaderboard.Visible = Leaderboard.Valid && Leaderboard.ScoreCount > 0;
 
-                panel.Button.Pressed += () => { toggleLeaderboard(false); };
-            }
+        foreach (Node child in lbContainer.GetChildren())
+        {
+            lbContainer.RemoveChild(child);
+            child.QueueFree();
+        }
+
+        for (int i = 0; i < Math.Min(8, Leaderboard.ScoreCount); i++)
+        {
+            ScorePanel panel = leaderboardScoreTemplate.Instantiate<ScorePanel>();
+
+            lbContainer.AddChild(panel);
+            panel.Setup(Leaderboard.Scores[i]);
+            panel.GetNode<ColorRect>("Background").Color = Color.Color8(255, 255, 255, (byte)(i % 2 == 0 ? 0 : 8));
+
+            panel.Button.Pressed += () => { toggleLeaderboard(false); };
         }
     }
 
@@ -344,10 +340,10 @@ public partial class MapInfoContainer : Panel, ISkinnable
         tween.TweenProperty(this, "position", show ? Vector2.Zero : Vector2.Down * 24, time);
         tween.TweenProperty(this, "scale", Vector2.One * (show ? 1f : 0.9f), time);
         tween.Chain();
-		
+
         return tween;
     }
-    
+
 	public void UpdateSkin(SkinProfile skin = null)
     {
         skin ??= SkinManager.Instance.Skin;

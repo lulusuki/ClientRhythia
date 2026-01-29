@@ -18,11 +18,11 @@ public partial class MapInfo : AspectRatioContainer
     public override void _Ready()
     {
         Instance = this;
-        
+
         mapList = GetParent().GetNode<MapList>("MapList");
         holder = GetNode<Panel>("Holder");
     }
-	
+
     public override void _Draw()
     {
         float height = (AnchorBottom - AnchorTop) * GetParent<Control>().Size.Y - OffsetTop + OffsetBottom;
@@ -32,10 +32,10 @@ public partial class MapInfo : AspectRatioContainer
 
 	public void Select(Map map)
 	{
-        if (Map != null && map.ID == Map.ID) { return; }
-        
+        if (Map != null && map.Name == Map.Name) { return; }
+
         Map = map;
-		
+
         var oldContainer = InfoContainer;
 
         InfoContainer?.Transition(false).TweenCallback(Callable.From(() => {
