@@ -80,7 +80,7 @@ public partial class FlatPreview : Panel
             });
         }
 
-        for (int i = Math.Clamp(lastPassedNote + 1, 0, Map.Notes.Length - 1); i < Map.Notes.Length; i++)
+        for (int i = Math.Clamp(lastPassedNote + 1, 0, Math.Max(0, Map.Notes.Length - 1)); i < Map.Notes.Length; i++)
         {
             var note = Map.Notes[i];
 
