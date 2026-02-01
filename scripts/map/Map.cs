@@ -143,7 +143,6 @@ public partial class Map : RefCounted
         Notes = data ?? Array.Empty<Note>();
         Length = length ?? Notes[^1].Millisecond;
         Name = (id.Replace(" ", "_") ?? new Regex("[^a-zA-Z0-9_-]").Replace($"{Mappers.Stringify()}_{PrettyTitle}".Replace(" ", "_"), ""));
-        Logger.Log(Name);
         AudioExt = (AudioBuffer != null && Encoding.UTF8.GetString(AudioBuffer[0..4]) == "OggS") ? "ogg" : "mp3";
 
         foreach (string mapper in Mappers)
