@@ -7,12 +7,16 @@ public partial class SearchPanel : Panel
     public bool SearchAuthor = false;
 
     private LineEdit lineEdit;
+    private TextureRect searchIcon;
 
     public override void _Ready()
     {
         lineEdit = GetNode<LineEdit>("LineEdit");
+        searchIcon = GetNode<TextureRect>("TextureRect");
 
         lineEdit.TextChanged += (text) => {
+            searchIcon.SelfModulate = new Color(1, 1, 1, text == "" ? 0.5f : 1);
+
             MapList.Instance.Search(SearchAuthor ? null : text, SearchAuthor ? text : null);
         };
     }
@@ -21,7 +25,7 @@ public partial class SearchPanel : Panel
     {
         if (@event is InputEventKey eventKey && eventKey.Pressed && !eventKey.CtrlPressed && !eventKey.AltPressed)
         {
-            if (GetViewport().GuiGetFocusOwner() == null)
+            if (!SearchAuthor && GetViewport().GuiGetFocusOwner() == null)
             {
                 lineEdit.GrabFocus();
             }
