@@ -43,18 +43,10 @@ shader_parameter/margin = 0.0
 bg_color = Color(1, 1, 1, 1)
 draw_center = false
 
-[node name="SceneLoading" type="Control" unique_id=1767132012]
-layout_mode = 3
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_right = 3.0
-grow_horizontal = 2
-grow_vertical = 2
+[node name="SceneLoading" type="Node" unique_id=894859233]
 script = ExtResource("1_dhqfv")
 
 [node name="Background" type="ColorRect" parent="." unique_id=1414322225]
-layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -65,7 +57,6 @@ color = Color(0, 0, 0, 1)
 [node name="Splash" type="TextureRect" parent="." unique_id=798583636]
 modulate = Color(1, 1, 1, 0)
 material = SubResource("ShaderMaterial_101rs")
-layout_mode = 1
 anchors_preset = -1
 anchor_top = 0.2
 anchor_right = 1.0
@@ -79,7 +70,6 @@ stretch_mode = 5
 [node name="SplashShift" type="TextureRect" parent="." unique_id=138854244]
 modulate = Color(1, 1, 1, 0)
 material = SubResource("ShaderMaterial_dhqfv")
-layout_mode = 1
 anchors_preset = -1
 anchor_top = 0.2
 anchor_right = 1.0
@@ -91,7 +81,6 @@ expand_mode = 1
 stretch_mode = 5
 
 [node name="ProgressLabel" type="Label" parent="." unique_id=1976898353]
-layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.5
 anchor_top = 0.9
@@ -106,7 +95,6 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="ProgressBar" type="Panel" parent="." unique_id=276017175]
-layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.4
 anchor_top = 0.9
@@ -127,7 +115,6 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_nxo4k")
 
 [node name="Spectrum" type="Panel" parent="." unique_id=797692806]
 material = SubResource("ShaderMaterial_nxo4k")
-layout_mode = 1
 anchors_preset = -1
 anchor_top = 0.8
 anchor_right = 1.0
@@ -150,7 +137,6 @@ Align = 1.0
 
 [node name="Transition" type="ColorRect" parent="." unique_id=472667306]
 self_modulate = Color(1, 1, 1, 0)
-layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
