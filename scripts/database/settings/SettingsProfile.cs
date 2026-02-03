@@ -586,7 +586,7 @@ public partial class SettingsProfile
             }
         };
 
-        SimpleHUD = new(true)
+        SimpleHUD = new(false)
         {
             Id = "SimpleHUD",
             Title = "Simple HUD",
